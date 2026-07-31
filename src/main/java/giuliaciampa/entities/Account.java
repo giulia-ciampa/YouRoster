@@ -1,0 +1,86 @@
+package giuliaciampa.entities;
+
+import jakarta.persistence.*;
+
+import java.util.UUID;
+
+@Entity
+@Table(name = "accounts")
+public class Account {
+
+    //ATTRIBUTI
+    @Id
+    @GeneratedValue
+    @Column(name = "id_account")
+    private UUID id;
+
+    @Column(length = 50, unique = true, nullable = false)
+    private String email;
+
+    @Column(length = 100, nullable = false)
+    private String password;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
+
+    //COSTRUTTORE
+    public Account(String email, String password) {
+        this.email = email;
+        this.password = password;
+        this.isActive = false;
+    }
+
+    //COSTRUTTORE VUOTO
+
+    protected Account() {
+    }
+
+    //METODO ATTIVAZIONE ACCOUNT
+
+    public void activate() {
+        isActive = true;
+    }
+
+    //METODO DISATTIVAZIONE ACCOUNT
+    public void deactivate() {
+        isActive = false;
+    }
+
+    //GETTER E SETTER
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    //TO STRING
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", isActive=" + isActive +
+                '}';
+    }
+}
