@@ -1,4 +1,4 @@
-package giuliaciampa.entities;
+package giuliaciampa.YouRoster.entities;
 
 import jakarta.persistence.*;
 
