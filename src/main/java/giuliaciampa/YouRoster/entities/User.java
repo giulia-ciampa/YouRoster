@@ -12,6 +12,7 @@ public class User {
     //ATTRIBUTI
     @Id
     @GeneratedValue
+    @Column(name = "user_id")
     private UUID id;
 
     @Column(nullable = false, length = 30)
@@ -39,7 +40,7 @@ public class User {
     private String photoUrl;
 
     @ManyToOne //VEDI IN SEGUITO SE FARE UNA RELAZIONE BIDIREZIONALE
-    @JoinColumn(name = "reference_office")
+    @JoinColumn(name = "reference_office_id")
     private Office referenceOffice;
 
     @Column(unique = true, nullable = false, length = 50)
@@ -84,7 +85,7 @@ public class User {
 
     //COSTRUTTORE VUOTO
 
-    public User() {
+    protected User() {
     }
 
     //GETTER E SETTER
@@ -219,22 +220,22 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "id=" + getId() +
-                ", name='" + getName() + '\'' +
-                ", surname='" + getSurname() + '\'' +
-                ", taxCode='" + getTaxCode() + '\'' +
-                ", dateOfBirth=" + getDateOfBirth() +
-                ", placeOfBirth='" + getPlaceOfBirth() + '\'' +
-                ", phoneNumber='" + getPhoneNumber() + '\'' +
-                ", address='" + getAddress() + '\'' +
-                ", photoUrl='" + getPhotoUrl() + '\'' +
-                ", referenceOffice=" + getReferenceOffice() +
-                ", iban='" + getIban() + '\'' +
-                ", documentNumber='" + getDocumentNumber() + '\'' +
-                ", documentType=" + getDocumentType() +
-                ", issueDate=" + getIssueDate() +
-                ", expirationDate=" + getExpirationDate() +
-                ", account=" + getAccount() +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", taxCode='" + taxCode + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", placeOfBirth='" + placeOfBirth + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", address='" + address + '\'' +
+                ", photoUrl='" + photoUrl + '\'' +
+                ", referenceOffice=" + referenceOffice +
+                ", iban='" + iban + '\'' +
+                ", documentNumber='" + documentNumber + '\'' +
+                ", documentType=" + documentType +
+                ", issueDate=" + issueDate +
+                ", expirationDate=" + expirationDate +
+                ", account=" + account +
                 '}';
     }
 }
