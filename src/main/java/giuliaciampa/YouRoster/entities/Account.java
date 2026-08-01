@@ -1,7 +1,9 @@
-package giuliaciampa.entities;
+package giuliaciampa.YouRoster.entities;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -11,7 +13,7 @@ public class Account {
     //ATTRIBUTI
     @Id
     @GeneratedValue
-    @Column(name = "id_account")
+    @Column(name = "account_id")
     private UUID id;
 
     @Column(length = 50, unique = true, nullable = false)
@@ -22,6 +24,14 @@ public class Account {
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+
+    @ManyToMany
+    @JoinTable(
+            name = "accounts_roles",
+            joinColumns = @JoinColumn(name = "account_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 
     //COSTRUTTORE
     public Account(String email, String password) {
@@ -71,6 +81,14 @@ public class Account {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     //TO STRING
