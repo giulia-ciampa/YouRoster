@@ -1,0 +1,40 @@
+package giuliaciampa.YouRoster.exceptions;
+
+import giuliaciampa.YouRoster.dto.responses.ErrorsDTO;
+import giuliaciampa.YouRoster.dto.responses.ErrorsListDTO;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+
+@RestControllerAdvice
+public class ExceptionsHandler {
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorsDTO handleUserAlreadyExistsException(UserAlreadyExistsException e) {
+        return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorsListDTO handleValidationException(ValidationException e) {
+        return new ErrorsListDTO(e.getMessage(), LocalDateTime.now(), e.getErrors());
+    }
+
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorsDTO handleBadRequestException(BadRequestException e) {
+        return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
+    }
+
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorsDTO handleGenericException(Exception e) {
+        return new ErrorsDTO("Al momento il server non risponde", LocalDateTime.now());
+    }
+}

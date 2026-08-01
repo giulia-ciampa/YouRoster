@@ -42,7 +42,7 @@ public class Account {
 
     //COSTRUTTORE VUOTO
 
-    protected Account() {
+    public Account() {
     }
 
     //METODO ATTIVAZIONE ACCOUNT
