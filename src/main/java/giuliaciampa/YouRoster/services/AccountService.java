@@ -5,6 +5,10 @@ import giuliaciampa.YouRoster.entities.Role;
 import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.exceptions.UserAlreadyExistsException;
 import giuliaciampa.YouRoster.repositories.AccountRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -69,6 +73,19 @@ public class AccountService {
         return accountRepository.existsByRoles_Name(roleName);
     }
 
+
+    //TROVA GLI ACCOUNT IN ATTESA DI ESSERE ACCETTATI
+    public Page<Account> getPendingAccounts(int page, int size, String sortBy) {
+
+
+        if (size <= 0) size = 10;
+        if (size > 15) size = 15;
+        if (page < 0) page = 0;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
+
+        return accountRepository.findByIsActiveFalse(pageable);
+    }
 
 }
 

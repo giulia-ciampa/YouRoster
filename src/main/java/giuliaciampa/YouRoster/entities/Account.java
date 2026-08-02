@@ -1,7 +1,10 @@
 package giuliaciampa.YouRoster.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -19,11 +22,16 @@ public class Account {
     @Column(length = 50, unique = true, nullable = false)
     private String email;
 
+    @JsonIgnore
     @Column(length = 100, nullable = false)
     private String password;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     @ManyToMany
     @JoinTable(
@@ -91,14 +99,23 @@ public class Account {
         this.roles = roles;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     //TO STRING
 
     @Override
     public String toString() {
         return "Account{" +
                 "id=" + id +
-                ", email='" + email + '\'' +
+                ", email=" + email + '\'' +
                 ", isActive=" + isActive +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }
