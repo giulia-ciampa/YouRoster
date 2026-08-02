@@ -6,7 +6,7 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public record RegisterRequestDTO(
+public record UserRegistrationRequestDTO(
         @NotBlank(message = "Il nome è obbligatorio")
         String name,
 
@@ -75,7 +75,7 @@ public record RegisterRequestDTO(
         @NotNull(message = "La data di scadenza del documento è obbligatoria")
         LocalDate expirationDate,
 
-        @Email
+        @Email(message = "Email non valida")
         @NotBlank(message = "L'indirizzo email è obbligatorio")
         String email,
 

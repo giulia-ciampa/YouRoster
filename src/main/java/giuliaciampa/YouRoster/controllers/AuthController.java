@@ -1,7 +1,7 @@
 package giuliaciampa.YouRoster.controllers;
 
-import giuliaciampa.YouRoster.dto.requests.RegisterRequestDTO;
-import giuliaciampa.YouRoster.dto.responses.RegistrationResponseDTO;
+import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
+import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.AuthService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -25,7 +25,7 @@ public class AuthController {
     //REGISTRAZIONE
     @PostMapping("/registration")
     @ResponseStatus(HttpStatus.CREATED)
-    public RegistrationResponseDTO register(@RequestBody @Validated RegisterRequestDTO payload, BindingResult validationResult) {
+    public UserRegistrationResponseDTO register(@RequestBody @Validated UserRegistrationRequestDTO payload, BindingResult validationResult) {
 
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
@@ -34,7 +34,7 @@ public class AuthController {
             throw new ValidationException(errorsList);
         }
 
-        return authService.register(payload);
+        return authService.registerUser(payload);
     }
 
 }

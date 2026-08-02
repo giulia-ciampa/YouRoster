@@ -1,7 +1,7 @@
 package giuliaciampa.YouRoster.services;
 
-import giuliaciampa.YouRoster.dto.requests.RegisterRequestDTO;
-import giuliaciampa.YouRoster.dto.responses.RegistrationResponseDTO;
+import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
+import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.entities.User;
 import giuliaciampa.YouRoster.exceptions.UserAlreadyExistsException;
@@ -11,6 +11,8 @@ import giuliaciampa.YouRoster.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class AuthService {
@@ -24,10 +26,10 @@ public class AuthService {
         this.bcrypt = bcrypt;
     }
 
-    //METODO SALVA NUOVO ACCOUNT-REGISTER
+    //METODO SALVA NUOVO ACCOUNT-REGISTER E CREA UNO USER
 
     @Transactional
-    public RegistrationResponseDTO register(RegisterRequestDTO payload) {
+    public UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO payload) {
 
         //controlli
         if (accountRepository.existsByEmail(payload.email())) {
@@ -96,6 +98,7 @@ public class AuthService {
         user.setZipCode(payload.zipCode());
         user.setCity(payload.city());
         user.setProvince(payload.province());
+        user.setPhotoUrl("https://ui-avatars.com/api/?name=" + payload.name() + payload.surname());
         user.setIban(payload.iban().trim().toUpperCase());
         user.setDocumentNumber(cleanNumber);
         user.setDocumentType(payload.documentType());
@@ -105,6 +108,19 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        return new RegistrationResponseDTO(savedUser.getName(), savedUser.getSurname(), savedUser.getAccount().getEmail(), "Registrazione avvenuta con successo, presto l'amministratore potrà attivare il tuo account!");
+        return new UserRegistrationResponseDTO(savedUser.getName(), savedUser.getSurname(), savedUser.getAccount().getEmail(), "Registrazione avvenuta con successo, presto l'amministratore potrà visualizzare la tua richiesta di attivazione.", LocalDateTime.now());
     }
+
+
+    //METODO CHE CREA ACCOUNT ADMIN
+//    public Account createAdminAccount(AccountLoginRequestDTO payload) {
+//        //controllo se l'email non esiste già
+//        if (!accountRepository.existsByEmail(payload.email())) {
+//            Account newAccount = new Account();
+//
+//            newAccount.setEmail(payload.email());
+//            newAccount.setPassword(payload.password());
+//
+//        }
+//    }
 }

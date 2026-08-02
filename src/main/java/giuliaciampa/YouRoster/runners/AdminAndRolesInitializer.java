@@ -1,0 +1,32 @@
+package giuliaciampa.YouRoster.runners;
+
+import giuliaciampa.YouRoster.services.AccountService;
+import giuliaciampa.YouRoster.services.AuthService;
+import giuliaciampa.YouRoster.services.RoleService;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+public class AdminAndRolesInitializer implements CommandLineRunner {
+    //ATTRIBUTI
+    private final RoleService roleService;
+    private final AuthService authService;
+    private final AccountService accountService;
+
+    //COSTRUTTORE
+    public AdminAndRolesInitializer(RoleService roleService, AuthService authService, AccountService accountService) {
+        this.roleService = roleService;
+        this.authService = authService;
+        this.accountService = accountService;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+
+        //POPOLA IL DB CON I RUOLI
+        roleService.saveRoles();
+        System.out.println("Ruoli inseriti all'avvio");
+
+
+    }
+}
