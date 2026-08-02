@@ -13,6 +13,7 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
+
     //METODO PER SALVARE I RUOLI SE NON ESISTONO GIA'
     public void saveRoles() {
         if (roleRepository.findByName("ADMIN").isEmpty()) {
@@ -43,7 +44,6 @@ public class RoleService {
     }
 
     //METODO PER CERCARE UN RUOLO PER NOME, DA USARE PER ASSEGNARLO
-
     public Role findRoleByName(String name) {
         return roleRepository.findByName(name).orElseThrow(() -> new NotFoundException("Il ruolo con il nome " + name + " non è stato trovato."));
     }

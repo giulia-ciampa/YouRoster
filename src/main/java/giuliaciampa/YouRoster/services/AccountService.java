@@ -44,10 +44,15 @@ public class AccountService {
     }
 
     //SALVA ACCOUNT
-    public Account saveAccount(String email, String password, Set<Role> roles) {
+    public Account saveAccount(String email, String password, Set<Role> roles, boolean isActive) {
         Account account = new Account();
         account.setEmail(email);
         account.setPassword(bcrypt.encode(password));
+
+
+        if (isActive) {
+            account.activate();
+        }
 
         if (roles != null && !roles.isEmpty()) {
             account.setRoles(roles);
@@ -58,6 +63,12 @@ public class AccountService {
 
         return accountRepository.save(account);
     }
+
+    //CONTROLLA SE ESISTE UN ACCOUNT CON IL RUOLO ADMIN
+    public boolean existsAccountWithRole(String roleName) {
+        return accountRepository.existsByRoles_Name(roleName);
+    }
+
 
 }
 

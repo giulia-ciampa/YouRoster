@@ -4,17 +4,19 @@ import giuliaciampa.YouRoster.services.AccountService;
 import giuliaciampa.YouRoster.services.AuthService;
 import giuliaciampa.YouRoster.services.RoleService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AdminAndRolesInitializer implements CommandLineRunner {
+@Order(1)
+public class RolesInitializer implements CommandLineRunner {
     //ATTRIBUTI
     private final RoleService roleService;
     private final AuthService authService;
     private final AccountService accountService;
 
     //COSTRUTTORE
-    public AdminAndRolesInitializer(RoleService roleService, AuthService authService, AccountService accountService) {
+    public RolesInitializer(RoleService roleService, AuthService authService, AccountService accountService) {
         this.roleService = roleService;
         this.authService = authService;
         this.accountService = accountService;

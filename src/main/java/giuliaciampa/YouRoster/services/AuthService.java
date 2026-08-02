@@ -60,7 +60,7 @@ public class AuthService {
 
         // 4. Salva Account
         Role staff = roleService.findRoleByName("STAFF");
-        Account savedAccount = accountService.saveAccount(correctEmail, payload.password(), Set.of(staff));
+        Account savedAccount = accountService.saveAccount(correctEmail, payload.password(), Set.of(staff), false);
 
 
         // 5. Crea e salva lo User associato
@@ -85,6 +85,7 @@ public class AuthService {
         user.setExpirationDate(payload.expirationDate());
         user.setAccount(savedAccount);
 
+
         User savedUser = userService.saveUser(user);
 // 6. Return DTO
         return new UserRegistrationResponseDTO(
@@ -96,5 +97,22 @@ public class AuthService {
         );
     }
 
+    // CREA ACCOUNT PER L'ADMIN SE NON ESISTE
+    public void saveAdmin(String defaultEmail, String defaultPassword) {
+        boolean adminExist = accountService.existsAccountWithRole("ADMIN");
+
+        if (!adminExist) {
+            System.out.println("Nessun Admin trovato. Creazione Admin di default in corso...");
+
+            Role adminRole = roleService.findRoleByName("ADMIN");
+
+
+            accountService.saveAccount(defaultEmail, defaultPassword, Set.of(adminRole), true);
+
+            System.out.println("Admin creato con successo!");
+        } else {
+            System.out.println("Account ADMIN già presente nel sistema.");
+        }
+    }
 
 }
