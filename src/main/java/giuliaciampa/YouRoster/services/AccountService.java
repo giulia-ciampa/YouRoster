@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class AccountService {
@@ -26,8 +27,12 @@ public class AccountService {
         this.roleService = roleService;
     }
 
-    //METODO TROVA ACCOUNT PER EMAIL
+    //FIND BY ID
+    public Account findById(UUID id) {
+        return accountRepository.findById(id).orElseThrow(() -> new NotFoundException("L'account con id " + id + " non è stato trovato"));
+    }
 
+    //METODO TROVA ACCOUNT PER EMAIL
     public Account findAccountByEmail(String email) {
         return accountRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("L'account con email " + email + " non è stato trovato"));
     }
@@ -43,16 +48,14 @@ public class AccountService {
         if (accountRepository.existsByEmail(email)) {
             throw new UserAlreadyExistsException("L'utente con email " + email + " è già esistente");
         }
-
         return email;
     }
 
-    //SALVA ACCOUNT
+    //CREA E SALVA NUOVO ACCOUNT PER LA REGISTRAZIONE E ADMIN DI DEFAULT
     public Account saveAccount(String email, String password, Set<Role> roles, boolean isActive) {
         Account account = new Account();
         account.setEmail(email);
         account.setPassword(bcrypt.encode(password));
-
 
         if (isActive) {
             account.activate();
@@ -64,8 +67,18 @@ public class AccountService {
             Role defaultRole = roleService.findRoleByName("STAFF");
             account.setRoles(Set.of(defaultRole));
         }
-
         return accountRepository.save(account);
+    }
+
+    //AGGIORNA ACCOUNT ESISTENTE
+    public Account updateAccount(Account account) {
+        return accountRepository.save(account);
+    }
+
+    // RIFIUTA E RIMUOOVE ACCOUNT
+    public void deleteAccount(UUID id) {
+        Account account = findById(id);
+        accountRepository.delete(account);
     }
 
     //CONTROLLA SE ESISTE UN ACCOUNT CON IL RUOLO ADMIN

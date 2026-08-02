@@ -1,6 +1,8 @@
 package giuliaciampa.YouRoster.services;
 
+import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
+import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.entities.Role;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -26,7 +29,6 @@ public class AuthService {
     }
 
     //METODO SALVA NUOVO ACCOUNT-REGISTER E CREA UNO USER
-
     @Transactional
     public UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO payload) {
 
@@ -87,7 +89,7 @@ public class AuthService {
 
 
         User savedUser = userService.saveUser(user);
-// 6. Return DTO
+        // 6. Return DTO
         return new UserRegistrationResponseDTO(
                 savedUser.getName(),
                 savedUser.getSurname(),
@@ -113,6 +115,24 @@ public class AuthService {
         } else {
             System.out.println("Account ADMIN già presente nel sistema.");
         }
+    }
+
+    //APPROVA E ASSEGNA RUOLO(ADMIN)
+    public AdminApprovalResponseDTO approveAndassignRoles(UUID id, AdminApprovalRequestDTO payload) {
+        Account account = accountService.findById(id);
+
+        account.activate();
+        account.setRoles(payload.roles());
+
+        Account updateAccount = accountService.updateAccount(account);
+
+        return new AdminApprovalResponseDTO("L'account con l'email " + updateAccount.getEmail() + " attivato con successo con ruolo " + updateAccount.getRoles(), LocalDateTime.now());
+
+    }
+
+    // RIFIUTA E RIMOZIONE RICHIESTA (ADMIN)
+    public void rejectAccount(UUID id) {
+        accountService.deleteAccount(id);
     }
 
 }
