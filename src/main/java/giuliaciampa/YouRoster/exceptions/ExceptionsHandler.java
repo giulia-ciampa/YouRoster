@@ -24,10 +24,22 @@ public class ExceptionsHandler {
         return new ErrorsListDTO(e.getMessage(), LocalDateTime.now(), e.getErrors());
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorsDTO handleUnauthorizedException(UnauthorizedException e) {
+        return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
+    }
+
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorsDTO handleBadRequestException(BadRequestException e) {
+        return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorsDTO handleNotFoundException(NotFoundException e) {
         return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
     }
 

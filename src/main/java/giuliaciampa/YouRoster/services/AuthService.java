@@ -1,14 +1,19 @@
 package giuliaciampa.YouRoster.services;
 
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
+import giuliaciampa.YouRoster.dto.requests.LoginRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
 import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
+import giuliaciampa.YouRoster.dto.responses.LoginResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.entities.Role;
 import giuliaciampa.YouRoster.entities.User;
+import giuliaciampa.YouRoster.exceptions.UnauthorizedException;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
+import giuliaciampa.YouRoster.security.JWTTools;
 import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,12 +25,15 @@ public class AuthService {
     private final AccountService accountService;
     private final UserService userService;
     private final RoleService roleService;
+    private final PasswordEncoder bcrypt;
+    private final JWTTools jwtTools;
 
-
-    public AuthService(AccountService accountService, UserService userService, RoleService roleService) {
+    public AuthService(AccountService accountService, UserService userService, RoleService roleService, PasswordEncoder bcrypt, JWTTools jwtTools) {
         this.accountService = accountService;
         this.userService = userService;
         this.roleService = roleService;
+        this.bcrypt = bcrypt;
+        this.jwtTools = jwtTools;
     }
 
     //METODO SALVA NUOVO ACCOUNT-REGISTER E CREA UNO USER
@@ -117,6 +125,7 @@ public class AuthService {
         }
     }
 
+
     //APPROVA E ASSEGNA RUOLO(ADMIN)
     public AdminApprovalResponseDTO approveAndassignRoles(UUID id, AdminApprovalRequestDTO payload) {
         Account account = accountService.findById(id);
@@ -133,6 +142,27 @@ public class AuthService {
     // RIFIUTA E RIMOZIONE RICHIESTA (ADMIN)
     public void rejectAccount(UUID id) {
         accountService.deleteAccount(id);
+    }
+
+    //LOGIN
+    public LoginResponseDTO login(LoginRequestDTO payload) {
+        //1. cerca account per email
+        Account account = accountService.findAccountByEmail(payload.email());
+
+        //2. verifica la password
+        if (!bcrypt.matches(payload.password(), account.getPassword())) {
+            throw new UnauthorizedException("Credenziali non valide");
+        }
+
+        //3. verifica se l'account è attivo, approvato dall'admin
+        if (!account.isActive()) {
+            throw new UnauthorizedException("Il tuo account è in attesa di approvazione da parte dell'admin");
+        }
+
+        //4. genera il token e restituiscilo nel DTO di risposta
+        String accessToken = jwtTools.generateToken(account);
+
+        return new LoginResponseDTO(accessToken);
     }
 
 }

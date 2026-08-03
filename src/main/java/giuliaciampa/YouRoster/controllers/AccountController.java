@@ -7,6 +7,7 @@ import giuliaciampa.YouRoster.services.AccountService;
 import giuliaciampa.YouRoster.services.AuthService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class AccountController {
     }
 
     //1. TROVA GLI ACCOUNT IN ATTESA DI ESSERE ACCETTATI
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/pending")
     public Page<Account> getPendingAccounts(@RequestParam(defaultValue = "0") int page,
                                             @RequestParam(defaultValue = "10") int size,
@@ -35,6 +37,7 @@ public class AccountController {
     }
 
     //2.APPROVA E ASSEGNA I RUOLI
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{id}/accept")
     public AdminApprovalResponseDTO approveAndassignRoles(@PathVariable UUID id, @RequestBody @Validated AdminApprovalRequestDTO payload) {
         return authService.approveAndassignRoles(id, payload);
@@ -42,6 +45,7 @@ public class AccountController {
 
 
     //3. RIFIUTA ED ELIMINA LA RICHIESTA
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}/reject")
     public void rejectAccount(@PathVariable UUID id) {
         authService.rejectAccount(id);
