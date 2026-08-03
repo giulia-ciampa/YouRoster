@@ -39,6 +39,7 @@ public class AuthController {
         return authService.registerUser(payload);
     }
 
+
     //LOGIN
     @PostMapping("/login")
     public LoginResponseDTO login(@RequestBody @Validated LoginRequestDTO payload, BindingResult validationResult) {

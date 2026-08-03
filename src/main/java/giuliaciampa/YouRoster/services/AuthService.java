@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -130,12 +131,22 @@ public class AuthService {
     public AdminApprovalResponseDTO approveAndassignRoles(UUID id, AdminApprovalRequestDTO payload) {
         Account account = accountService.findById(id);
 
+
+        Set<Role> rolesToAssign = payload.roles().stream()
+                .map(roleService::findRoleByName)
+                .collect(Collectors.toSet());
+
         account.activate();
-        account.setRoles(payload.roles());
+        account.setRoles(rolesToAssign);
 
-        Account updateAccount = accountService.updateAccount(account);
 
-        return new AdminApprovalResponseDTO("L'account con l'email " + updateAccount.getEmail() + " attivato con successo con ruolo " + updateAccount.getRoles(), LocalDateTime.now());
+        Account updatedAccount = accountService.updateAccount(account);
+
+        String roleNames = updatedAccount.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.joining(", "));
+
+        return new AdminApprovalResponseDTO("L'account con l'email " + updatedAccount.getEmail() + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
 
     }
 

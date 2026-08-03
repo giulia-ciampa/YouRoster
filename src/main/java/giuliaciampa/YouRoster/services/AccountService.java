@@ -75,7 +75,7 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-    // RIFIUTA E RIMUOOVE ACCOUNT
+    // RIFIUTA E RIMUOVE ACCOUNT
     public void deleteAccount(UUID id) {
         Account account = findById(id);
         accountRepository.delete(account);
