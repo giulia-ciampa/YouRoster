@@ -1,6 +1,7 @@
 package giuliaciampa.YouRoster.controllers;
 
 import giuliaciampa.YouRoster.dto.requests.LoginRequestDTO;
+import giuliaciampa.YouRoster.dto.requests.RefreshTokenRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
 import giuliaciampa.YouRoster.dto.responses.LoginResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
@@ -52,6 +53,19 @@ public class AuthController {
         }
 
         return authService.login(payload);
+    }
+
+    //REFRESH TOKEN
+    @PostMapping("/refresh")
+    public LoginResponseDTO refresh(@RequestBody @Validated RefreshTokenRequestDTO payload, BindingResult validationResult) {
+        if (validationResult.hasErrors()) {
+            List<String> errorsList = validationResult.getFieldErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .toList();
+            throw new ValidationException(errorsList);
+        }
+
+        return authService.refreshToken(payload.refreshToken());
     }
 
 }

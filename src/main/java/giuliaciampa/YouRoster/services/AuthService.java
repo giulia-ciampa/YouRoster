@@ -7,6 +7,7 @@ import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.LoginResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
+import giuliaciampa.YouRoster.entities.RefreshToken;
 import giuliaciampa.YouRoster.entities.Role;
 import giuliaciampa.YouRoster.entities.User;
 import giuliaciampa.YouRoster.exceptions.UnauthorizedException;
@@ -28,13 +29,15 @@ public class AuthService {
     private final RoleService roleService;
     private final PasswordEncoder bcrypt;
     private final JWTTools jwtTools;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthService(AccountService accountService, UserService userService, RoleService roleService, PasswordEncoder bcrypt, JWTTools jwtTools) {
+    public AuthService(AccountService accountService, UserService userService, RoleService roleService, PasswordEncoder bcrypt, JWTTools jwtTools, RefreshTokenService refreshTokenService) {
         this.accountService = accountService;
         this.userService = userService;
         this.roleService = roleService;
         this.bcrypt = bcrypt;
         this.jwtTools = jwtTools;
+        this.refreshTokenService = refreshTokenService;
     }
 
     //METODO SALVA NUOVO ACCOUNT-REGISTER E CREA UNO USER
@@ -170,10 +173,34 @@ public class AuthService {
             throw new UnauthorizedException("Il tuo account è in attesa di approvazione da parte dell'admin");
         }
 
-        //4. genera il token e restituiscilo nel DTO di risposta
+        //4. genera il token
         String accessToken = jwtTools.generateToken(account);
 
-        return new LoginResponseDTO(accessToken);
+        // 5. Genera - aggiorna il Refresh Token nel database
+        RefreshToken refreshToken = refreshTokenService.generateRefreshToken(account);
+
+
+        return new LoginResponseDTO(accessToken, refreshToken.getToken());
+    }
+
+    //METODO RINNOVO REFRESH TOKEN
+    @Transactional
+    public LoginResponseDTO refreshToken(String requestFreshToken) {
+        //1. cerca il token nel db
+
+        RefreshToken token = refreshTokenService.findByToken(requestFreshToken);
+        //2. verifica che non sia scaduto
+        refreshTokenService.verifyExpiration(token);
+
+        Account account = token.getAccount();
+
+        //3. genera un NUOVO access token
+        String newAccessToken = jwtTools.generateToken(account);
+
+        //4. genera un NUOVO refresh token(refresh token rotation)
+        RefreshToken newRefreshToken = refreshTokenService.generateRefreshToken(account);
+
+        return new LoginResponseDTO(newAccessToken, newRefreshToken.getToken());
     }
 
 }
