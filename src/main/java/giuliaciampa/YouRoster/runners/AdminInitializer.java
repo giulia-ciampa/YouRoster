@@ -12,10 +12,12 @@ public class AdminInitializer implements CommandLineRunner {
 
     public final AuthService authService;
     private final String password;
+    private final String email;
 
-    public AdminInitializer(AuthService authService, @Value("${password.admin}") String password) {
+    public AdminInitializer(AuthService authService, @Value("${password.admin}") String password, @Value("${email.admin}") String email) {
         this.authService = authService;
         this.password = password;
+        this.email = email;
     }
 
     @Override
