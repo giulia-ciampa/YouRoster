@@ -12,9 +12,9 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class ExceptionsHandler {
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
+    @ExceptionHandler(AlreadyExistsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorsDTO handleUserAlreadyExistsException(UserAlreadyExistsException e) {
+    public ErrorsDTO handleUserAlreadyExistsException(AlreadyExistsException e) {
         return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
     }
 

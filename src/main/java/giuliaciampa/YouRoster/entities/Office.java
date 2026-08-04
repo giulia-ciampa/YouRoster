@@ -38,7 +38,7 @@ public class Office {
 
     //COSTRUTTORE VUOTO
 
-    protected Office() {
+    public Office() {
     }
 
     //GETTER E SETTER

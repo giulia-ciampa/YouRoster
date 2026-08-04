@@ -1,9 +1,12 @@
 package giuliaciampa.YouRoster.services;
 
 import giuliaciampa.YouRoster.entities.User;
-import giuliaciampa.YouRoster.exceptions.UserAlreadyExistsException;
+import giuliaciampa.YouRoster.exceptions.AlreadyExistsException;
+import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.repositories.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -19,7 +22,7 @@ public class UserService {
 
         String cleanTaxCode = taxCode.trim().toUpperCase();
         if (userRepository.existsByTaxCode(cleanTaxCode)) {
-            throw new UserAlreadyExistsException("L'utente con il codice fiscale " + cleanTaxCode + " è già esistente");
+            throw new AlreadyExistsException("L'utente con il codice fiscale " + cleanTaxCode + " è già esistente");
         }
 
         return cleanTaxCode;
@@ -30,7 +33,7 @@ public class UserService {
 
         String cleanDocumentNumber = documentNumber.trim().toUpperCase();
         if (userRepository.existsByDocumentNumber(cleanDocumentNumber)) {
-            throw new UserAlreadyExistsException("L'utente con il numero di documento " + cleanDocumentNumber + " è già esistente");
+            throw new AlreadyExistsException("L'utente con il numero di documento " + cleanDocumentNumber + " è già esistente");
         }
 
 
@@ -42,4 +45,9 @@ public class UserService {
         return userRepository.save(user);
     }
 
+
+    //TROVA LO USER IN BASE ALL'ID DELL'ACCOUNT
+    public User findByAccountId(UUID accountId) {
+        return userRepository.findByAccount_Id(accountId).orElseThrow(() -> new NotFoundException("l'utente con l'id dell'account " + accountId + " non è stato trovato"));
+    }
 }

@@ -3,10 +3,14 @@ package giuliaciampa.YouRoster.services;
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
 import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
+import giuliaciampa.YouRoster.entities.Office;
 import giuliaciampa.YouRoster.entities.Role;
+import giuliaciampa.YouRoster.entities.User;
+import giuliaciampa.YouRoster.exceptions.AlreadyExistsException;
+import giuliaciampa.YouRoster.exceptions.BadRequestException;
 import giuliaciampa.YouRoster.exceptions.NotFoundException;
-import giuliaciampa.YouRoster.exceptions.UserAlreadyExistsException;
 import giuliaciampa.YouRoster.repositories.AccountRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,12 +28,16 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final PasswordEncoder bcrypt;
     private final RoleService roleService;
+    private final OfficeService officeService;
+    private final UserService userService;
 
 
-    public AccountService(AccountRepository accountRepository, PasswordEncoder bcrypt, RoleService roleService) {
+    public AccountService(AccountRepository accountRepository, PasswordEncoder bcrypt, RoleService roleService, OfficeService officeService, UserService userService) {
         this.accountRepository = accountRepository;
         this.bcrypt = bcrypt;
         this.roleService = roleService;
+        this.officeService = officeService;
+        this.userService = userService;
     }
 
     // CREA ACCOUNT PER L'ADMIN SE NON ESISTE
@@ -49,27 +57,56 @@ public class AccountService {
         }
     }
 
-    //APPROVA E ASSEGNA RUOLO(ADMIN)
-    public AdminApprovalResponseDTO approveAndassignRoles(UUID id, AdminApprovalRequestDTO payload) {
+    //APPROVA E ASSEGNA RUOLO + SEDE (ADMIN)
+    @Transactional
+    public AdminApprovalResponseDTO approveAssignRolesAndOffice(UUID id, AdminApprovalRequestDTO payload) {
         Account account = accountRepository.findById(id).orElseThrow(() -> new NotFoundException("l'utente con id " + id + " non è stato trovato"));
 
-
+        //1. map dei ruoli
         Set<Role> rolesToAssign = payload.roles().stream()
                 .map(roleService::findRoleByName)
                 .collect(Collectors.toSet());
 
+        //2. recupera lo user legato all'account
+
+        User user = userService.findByAccountId(account.getId());
+
+        //3. verifica che tra i ruoli c'è coordinator
+        boolean isCoordinator = rolesToAssign.stream().anyMatch(role -> role.getName().equalsIgnoreCase("COORDINATOR"));
+
+        //4. se c'è coordinator assegna sede obbligatoriamente, altimenti assegno sede opzionale
+        Office officeToAssign = null;
+
+
+        if (isCoordinator) {
+            if (payload.officeId() == null) {
+                throw new BadRequestException("Il coordinatore " + user.getName() + " " + user.getSurname() + " deve avere una sede di riferimento");
+            }
+            officeToAssign = officeService.findById(payload.officeId());
+        } else if (payload.officeId() != null) {
+            officeToAssign = officeService.findById(payload.officeId());
+            //recupero ufficio anche se l'account non è di un coordinatore ma gli viene assegnato comunque
+        }
+
+        //5. attivazione e aggiornamento account
         account.activate();
         account.setRoles(rolesToAssign);
-
-
         Account updatedAccount = accountRepository.save(account);
+
+
+        //6. Assegnazione Sede allo User e salvataggio
+        user.setReferenceOffice(officeToAssign);
+        userService.saveUser(user);
 
         String roleNames = updatedAccount.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.joining(", "));
 
-        return new AdminApprovalResponseDTO("L'account con l'email " + updatedAccount.getEmail() + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
+        if (isCoordinator) {
+            return new AdminApprovalResponseDTO("L'account con l'email " + updatedAccount.getEmail() + " è stato attivato con successo con ruolo " + roleNames + " nella sede " + officeToAssign.getName(), LocalDateTime.now());
+        }
 
+        return new AdminApprovalResponseDTO("L'account con l'email " + updatedAccount.getEmail() + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
     }
 
 
@@ -94,7 +131,7 @@ public class AccountService {
     public String checkIfEmailAlreadyExists(String email) {
 
         if (accountRepository.existsByEmail(email)) {
-            throw new UserAlreadyExistsException("L'utente con email " + email + " è già esistente");
+            throw new AlreadyExistsException("L'utente con email " + email + " è già esistente");
         }
         return email;
     }
