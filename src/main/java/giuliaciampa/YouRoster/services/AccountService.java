@@ -103,10 +103,10 @@ public class AccountService {
                 .collect(Collectors.joining(", "));
 
         if (isCoordinator) {
-            return new AdminApprovalResponseDTO("L'account con l'email " + updatedAccount.getEmail() + " è stato attivato con successo con ruolo " + roleNames + " nella sede " + officeToAssign.getName(), LocalDateTime.now());
+            return new AdminApprovalResponseDTO("L'account dell'utente " + user.getName() + " " + user.getSurname() + " è stato attivato con successo con ruolo " + roleNames + " nella sede " + officeToAssign.getName(), LocalDateTime.now());
         }
 
-        return new AdminApprovalResponseDTO("L'account con l'email " + updatedAccount.getEmail() + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
+        return new AdminApprovalResponseDTO("L'account dell'utente " + user.getName() + " " + user.getSurname() + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
     }
 
 
@@ -168,6 +168,12 @@ public class AccountService {
 
         return accountRepository.findByIsActiveFalse(pageable);
     }
+
+    //SALVA ACCOUNT PER AGGIORNAMENTO CREDENZIALI
+    public Account save(Account account) {
+        return accountRepository.save(account);
+    }
+
 
 }
 

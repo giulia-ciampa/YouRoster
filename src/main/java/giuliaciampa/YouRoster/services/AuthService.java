@@ -1,12 +1,15 @@
 package giuliaciampa.YouRoster.services;
 
 import giuliaciampa.YouRoster.dto.requests.LoginRequestDTO;
+import giuliaciampa.YouRoster.dto.requests.UpdateCredentialsRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
 import giuliaciampa.YouRoster.dto.responses.LoginResponseDTO;
+import giuliaciampa.YouRoster.dto.responses.UpdateCredentialsResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.entities.RefreshToken;
 import giuliaciampa.YouRoster.entities.User;
+import giuliaciampa.YouRoster.exceptions.BadRequestException;
 import giuliaciampa.YouRoster.exceptions.UnauthorizedException;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.security.JWTTools;
@@ -15,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -129,6 +134,53 @@ public class AuthService {
 
         return new LoginResponseDTO(accessToken, refreshToken.getToken());
     }
+
+
+    //AGGIORNA CREDENZIALI ADMIN/UTENTE LOGGATO
+    @Transactional
+    public UpdateCredentialsResponseDTO updateCredentials(UUID accountId, UpdateCredentialsRequestDTO payload) {
+        Account account = accountService.findById(accountId);
+
+        boolean emailChanged = false;
+        boolean passwordChanged = false;
+
+        //1. se l'email cambia, controlla che payload.email non sia null e sia diversa da quella attuale
+        if (payload.email() != null && !account.getEmail().equalsIgnoreCase(payload.email())) {
+            //controlla che non sia già in uso
+            accountService.checkIfEmailAlreadyExists(payload.email());
+            account.setEmail(payload.email());
+            emailChanged = true;
+        }
+
+        //2. bcrypt e aggiornamento della password, solo se viene fornita una nuova password
+        if (payload.newPassword() != null && !payload.newPassword().isBlank()) {
+
+            if (payload.oldPassword() == null || !bcrypt.matches(payload.oldPassword(), account.getPassword())) {
+                throw new BadRequestException("La vecchia password non è corretta o non è stata inserita.");
+            }
+
+            if (!Objects.equals(payload.newPassword(), (payload.confirmNewPassword()))) {
+                throw new BadRequestException("La nuova password e la conferma password non coincidono.");
+            }
+            account.setPassword(bcrypt.encode(payload.newPassword()));
+            passwordChanged = true;
+        }
+
+
+        accountService.save(account);
+
+        // 3. Risposta dinamica in base alle modifiche effettive
+        if (emailChanged && passwordChanged) {
+            return new UpdateCredentialsResponseDTO("Email e password aggiornate con successo.", LocalDateTime.now());
+        } else if (emailChanged) {
+            return new UpdateCredentialsResponseDTO("Email aggiornata con successo.", LocalDateTime.now());
+        } else if (passwordChanged) {
+            return new UpdateCredentialsResponseDTO("Password aggiornata con successo.", LocalDateTime.now());
+        }
+
+        return new UpdateCredentialsResponseDTO("Nessuna modifica effettuata.", LocalDateTime.now());
+    }
+
 
     //METODO RINNOVO REFRESH TOKEN
     @Transactional

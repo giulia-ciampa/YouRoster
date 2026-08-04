@@ -53,7 +53,12 @@ public class TokenFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return new AntPathMatcher().match("/auth/**", request.getServletPath());
+        String path = request.getServletPath();
+        AntPathMatcher matcher = new AntPathMatcher();
+        
+        return matcher.match("/auth/login", path)
+                || matcher.match("/auth/register", path)
+                || matcher.match("/auth/refresh", path);
     }
 
 }
