@@ -2,6 +2,7 @@ package giuliaciampa.YouRoster.services;
 
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
 import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
+import giuliaciampa.YouRoster.emailTemplates.EmailTemplateBuilder;
 import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.entities.Office;
 import giuliaciampa.YouRoster.entities.Role;
@@ -11,6 +12,7 @@ import giuliaciampa.YouRoster.exceptions.BadRequestException;
 import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.repositories.AccountRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,14 +32,20 @@ public class AccountService {
     private final RoleService roleService;
     private final OfficeService officeService;
     private final UserService userService;
+    private final EmailService emailService;
+
+    @Value("${login.url}")
+    private String loginUrl;
 
 
-    public AccountService(AccountRepository accountRepository, PasswordEncoder bcrypt, RoleService roleService, OfficeService officeService, UserService userService) {
+    public AccountService(AccountRepository accountRepository, PasswordEncoder bcrypt, RoleService roleService, OfficeService officeService, UserService userService, EmailService emailService) {
         this.accountRepository = accountRepository;
         this.bcrypt = bcrypt;
         this.roleService = roleService;
         this.officeService = officeService;
         this.userService = userService;
+
+        this.emailService = emailService;
     }
 
     // CREA ACCOUNT PER L'ADMIN SE NON ESISTE
@@ -98,9 +106,24 @@ public class AccountService {
         user.setReferenceOffice(officeToAssign);
         userService.saveUser(user);
 
-        String roleNames = updatedAccount.getRoles().stream()
+        String roleNames = rolesToAssign.stream()
                 .map(Role::getName)
                 .collect(Collectors.joining(", "));
+
+        //7. invio email di benvenuto
+        String htmlBody = EmailTemplateBuilder.buildAccountApprovalEmail(
+                user.getName(),
+                roleNames,
+                officeToAssign != null ? officeToAssign.getName() : null,
+                loginUrl
+        );
+
+        emailService.sendHtmlEmail(
+                account.getEmail(),
+                "Account Approvato - Benvenuto in YouRoster!",
+                htmlBody
+        );
+
 
         if (isCoordinator) {
             return new AdminApprovalResponseDTO("L'account dell'utente " + user.getName() + " " + user.getSurname() + " è stato attivato con successo con ruolo " + roleNames + " nella sede " + officeToAssign.getName(), LocalDateTime.now());
