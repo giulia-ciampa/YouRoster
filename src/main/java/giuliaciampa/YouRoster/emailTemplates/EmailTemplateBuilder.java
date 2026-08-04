@@ -26,20 +26,20 @@ public class EmailTemplateBuilder {
                          <!-- Header con brand Ultrasonic Blue (#5D00E0) e bordo Grape Soda -->
                          <tr>
                          <td align="center" style="border-bottom: 2px solid #9E4289; padding-bottom: 15px;">
-                         <h1 style="color: #33007A; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: -0.5px;"><span style="color: #9E4289;">You</span>Roster</h1>
+                         <h1 style="color: #E35226; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: -0.5px;"><span style="color: #9E4289;">You</span>Roster</h1>
                          </td>
                          </tr>
                         
-                         <!-- Body con testo Carbon black (#252218) e titolo (#9E4289) -->
+                         <!-- Body con testo Carbon black (#252218) e titolo (#E35226) -->
                          <tr>
                          <td style="padding-top: 25px; color: #33007A; font-size: 15px; line-height: 1.6;">
                          <h2 style="margin-top: 0; color: #E35226; font-size: 20px;">Account Attivato! 🎉</h2>
-                         <p>Ciao <strong>%s</strong>,</p>
-                         <p>Il tuo account è stato approvato ed è pronto all'uso.</p>
+                         <p style="color: #252218";>Ciao <strong>%s</strong>,</p>
+                         <p style="color: #252218";>Il tuo account è stato approvato ed è pronto all'uso.</p>
                         
                          <div style="background-color: #f9f9f6; border-left: 4px solid #5D00E0; padding: 12px 16px; margin: 20px 0; border-radius: 0 6px 6px 0;">
-                         <p style="margin: 4px 0;"><strong>Ruolo assegnato:</strong> <span style="color: #5D00E0; font-weight: bold;">%s</span></p>
-                         <p style="margin: 4px 0;"><strong>Sede / Ufficio:</strong> %s</p>
+                         <p style="margin: 4px 0; color: #252218;"><strong>Ruolo assegnato:</strong> <span style="color: #5D00E0; font-weight: bold;">%s</span></p>
+                         <p style="margin: 4px 0; color: #252218"><strong>Sede / Ufficio:</strong> <span style="color: #5D00E0;"> %s</span></p>
                          </div>
                          </td>
                          </tr>
@@ -50,7 +50,7 @@ public class EmailTemplateBuilder {
                          <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                          <tr>
                          <td align="center" bgcolor="#5D00E0" style="border-radius: 6px;">
-                         <a href="%s" target="_blank" style="font-size: 15px; font-weight: bold; color: #ffffff !important; text-decoration: none; padding: 14px 32px; display: inline-block; border-radius: 6px; background-color: #5D00E0;">Accedi a YouRoster</a>
+                         <a href="%s" target="_blank" style="font-size: 15px; font-weight: bold; color: #ffffff !important; text-decoration: none; padding: 14px 32px; display: inline-block; border-radius: 6px; background-color: #5D00E0;">LOGIN</a>
                          </td>
                          </tr>
                          </table>

@@ -1,5 +1,6 @@
 package giuliaciampa.YouRoster.services;
 
+import giuliaciampa.YouRoster.exceptions.EmailSenderException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,10 +38,8 @@ public class EmailService {
 
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new RuntimeException("Errore durante l'invio dell'email: " + e.getMessage(), e);
+            throw new EmailSenderException("Errore durante l'invio dell'email: " + e.getMessage());
         }
-
-
     }
 
 }

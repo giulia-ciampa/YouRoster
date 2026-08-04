@@ -43,6 +43,12 @@ public class ExceptionsHandler {
         return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
     }
 
+    @ExceptionHandler(EmailSenderException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorsDTO handleEmailSendException(EmailSenderException e) {
+        return new ErrorsDTO(e.getMessage(), LocalDateTime.now());
+    }
+
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

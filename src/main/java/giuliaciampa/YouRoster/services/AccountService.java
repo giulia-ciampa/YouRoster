@@ -114,7 +114,7 @@ public class AccountService {
         String htmlBody = EmailTemplateBuilder.buildAccountApprovalEmail(
                 user.getName(),
                 roleNames,
-                officeToAssign != null ? officeToAssign.getName() : null,
+                officeToAssign != null ? officeToAssign.getName() : "Non è stata assegnata nessuna sede specifica",
                 loginUrl
         );
 
