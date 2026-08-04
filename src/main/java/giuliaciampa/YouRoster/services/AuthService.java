@@ -1,14 +1,11 @@
 package giuliaciampa.YouRoster.services;
 
-import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.LoginRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
-import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.LoginResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.entities.RefreshToken;
-import giuliaciampa.YouRoster.entities.Role;
 import giuliaciampa.YouRoster.entities.User;
 import giuliaciampa.YouRoster.exceptions.UnauthorizedException;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
@@ -18,9 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -73,8 +67,7 @@ public class AuthService {
         }
 
         // 4. Salva Account
-        Role staff = roleService.findRoleByName("STAFF");
-        Account savedAccount = accountService.saveAccount(correctEmail, payload.password(), Set.of(staff), false);
+        Account savedAccount = accountService.saveAccount(correctEmail, payload.password(), null, false);
 
 
         // 5. Crea e salva lo User associato
@@ -111,52 +104,6 @@ public class AuthService {
         );
     }
 
-    // CREA ACCOUNT PER L'ADMIN SE NON ESISTE
-    public void saveAdmin(String defaultEmail, String defaultPassword) {
-        boolean adminExist = accountService.existsAccountWithRole("ADMIN");
-
-        if (!adminExist) {
-            System.out.println("Nessun Admin trovato. Creazione Admin di default in corso...");
-
-            Role adminRole = roleService.findRoleByName("ADMIN");
-
-
-            accountService.saveAccount(defaultEmail, defaultPassword, Set.of(adminRole), true);
-
-            System.out.println("Admin creato con successo!");
-        } else {
-            System.out.println("Account ADMIN già presente nel sistema.");
-        }
-    }
-
-
-    //APPROVA E ASSEGNA RUOLO(ADMIN)
-    public AdminApprovalResponseDTO approveAndassignRoles(UUID id, AdminApprovalRequestDTO payload) {
-        Account account = accountService.findById(id);
-
-
-        Set<Role> rolesToAssign = payload.roles().stream()
-                .map(roleService::findRoleByName)
-                .collect(Collectors.toSet());
-
-        account.activate();
-        account.setRoles(rolesToAssign);
-
-
-        Account updatedAccount = accountService.updateAccount(account);
-
-        String roleNames = updatedAccount.getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.joining(", "));
-
-        return new AdminApprovalResponseDTO("L'account con l'email " + updatedAccount.getEmail() + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
-
-    }
-
-    // RIFIUTA E RIMOZIONE RICHIESTA (ADMIN)
-    public void rejectAccount(UUID id) {
-        accountService.deleteAccount(id);
-    }
 
     //LOGIN
     public LoginResponseDTO login(LoginRequestDTO payload) {

@@ -36,11 +36,11 @@ public class AccountController {
         return accountService.getPendingAccounts(page, size, sortBy);
     }
 
-    //2.APPROVA E ASSEGNA I RUOLI
+    //2.APPROVA, ASSEGNA I RUOLI E PUO' ASSEGNARE ANCHE LA SEDE
     @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{id}/accept")
     public AdminApprovalResponseDTO approveAndassignRoles(@PathVariable UUID id, @RequestBody @Validated AdminApprovalRequestDTO payload) {
-        return authService.approveAndassignRoles(id, payload);
+        return accountService.approveAndassignRoles(id, payload);
     }
 
 
@@ -48,7 +48,7 @@ public class AccountController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}/reject")
     public void rejectAccount(@PathVariable UUID id) {
-        authService.rejectAccount(id);
+        accountService.rejectAccount(id);
     }
 
 }
