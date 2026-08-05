@@ -1,6 +1,7 @@
 package giuliaciampa.YouRoster.services;
 
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
+import giuliaciampa.YouRoster.dto.responses.AccountSummaryDTO;
 import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
 import giuliaciampa.YouRoster.emailTemplates.EmailTemplateBuilder;
 import giuliaciampa.YouRoster.entities.Account;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,6 +51,23 @@ public class AccountService {
     }
 
 
+    //HELPER, CONVERTE ACCOUNT IN ACCOUNTSUMMARYDTO
+    private AccountSummaryDTO convertToAccountSummaryDTO(Account account) {
+        User user = userService.findByAccountId(account.getId());
+
+        return new AccountSummaryDTO(
+                account.getId(),
+                user != null ? user.getName() : null,
+                user != null ? user.getSurname() : null,
+                user != null ? user.getPhoneNumber() : null,
+                user != null ? user.getPhotoUrl() : null,
+                (user != null && user.getReferenceOffice() != null) ? user.getReferenceOffice().getName() : null,
+                account.getEmail(),
+                account.isActive()
+        );
+    }
+
+
     //1. CREA ACCOUNT PER L'ADMIN SE NON ESISTE
     public void saveAdmin(String defaultEmail, String defaultPassword) {
         boolean adminExist = accountRepository.existsByRoles_Name("ADMIN");
@@ -71,10 +90,17 @@ public class AccountService {
     public AdminApprovalResponseDTO approveAssignRolesAndOffice(UUID id, AdminApprovalRequestDTO payload) {
         Account account = accountRepository.findById(id).orElseThrow(() -> new NotFoundException("l'utente con id " + id + " non è stato trovato"));
 
-        //1. map dei ruoli
-        Set<Role> rolesToAssign = payload.roles().stream()
-                .map(roleService::findRoleByName)
-                .collect(Collectors.toSet());
+        //1. map dei ruoli, se non viene assegnato un ruolo assegna map di default
+        Set<Role> rolesToAssign;
+        if (payload.roles() == null || payload.roles().isEmpty()) {
+            Role defaultRole = roleService.findRoleByName("STAFF");
+            rolesToAssign = Set.of(defaultRole);
+        } else {
+            rolesToAssign = payload.roles().stream()
+                    .map(roleService::findRoleByName)
+                    .collect(Collectors.toSet());
+        }
+
 
         //2. recupera lo user legato all'account
 
@@ -176,7 +202,7 @@ public class AccountService {
         return email;
     }
 
-    //CREA E SALVA NUOVO ACCOUNT PER LA REGISTRAZIONE E ADMIN DI DEFAULT
+    //4. CREA E SALVA NUOVO ACCOUNT PER LA REGISTRAZIONE E ADMIN DI DEFAULT
     public Account saveAccount(String email, String password, Set<Role> roles, boolean isActive) {
         Account account = new Account();
         account.setEmail(email);
@@ -189,23 +215,25 @@ public class AccountService {
         if (roles != null && !roles.isEmpty()) {
             account.setRoles(roles);
         } else {
-            Role defaultRole = roleService.findRoleByName("STAFF");
-            account.setRoles(Set.of(defaultRole));
+            account.setRoles(new HashSet<>());
         }
         return accountRepository.save(account);
     }
 
-    //TROVA GLI ACCOUNT IN ATTESA DI ESSERE ACCETTATI
-    public Page<Account> getPendingAccounts(int page, int size, String sortBy) {
+    //5. TROVA GLI ACCOUNT IN ATTESA DI ESSERE ACCETTATI
+    public Page<AccountSummaryDTO> getPendingAccounts(int page, int size, String sortBy) {
 
 
         if (size <= 0) size = 10;
         if (size > 15) size = 15;
         if (page < 0) page = 0;
 
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
 
-        return accountRepository.findByIsActiveFalse(pageable);
+        Page<Account> accountsPage = accountRepository.findByIsActiveFalseAndRolesIsEmpty(pageable);
+
+        return accountsPage.map(this::convertToAccountSummaryDTO);
     }
 
     //SALVA ACCOUNT PER AGGIORNAMENTO CREDENZIALI
@@ -214,7 +242,7 @@ public class AccountService {
     }
 
 
-    //ADMIN PUO' DISABILITARE UN ACCOUNT
+    //6. ADMIN PUO' DISABILITARE UN ACCOUNT
     @Transactional
     public AdminApprovalResponseDTO disableAccount(UUID accountId) {
         User foundUser = userService.findByAccountId(accountId);
@@ -237,6 +265,14 @@ public class AccountService {
         );
 
         return new AdminApprovalResponseDTO("L'account appartenente a " + foundUser.getName() + " " + foundUser.getSurname() + " è stato disabilitato con successo", LocalDateTime.now());
+    }
+
+    //7. DATO UN RUOLO, DIMMI GLI ACCOUNT CHE HANNO QUEL RUOLO
+    public Page<AccountSummaryDTO> getAccountByRole(String roleName, Pageable pageable) {
+
+        Page<Account> accountsPage = accountRepository.findByRolesNameIgnoreCase(roleName, pageable);
+
+        return accountsPage.map(this::convertToAccountSummaryDTO);
     }
 
 

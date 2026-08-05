@@ -19,4 +19,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     Page<Account> findByIsActiveFalse(Pageable pageable);
 
+    Page<Account> findByRolesNameIgnoreCase(String roleName, Pageable pageable);
+
+    Page<Account> findByIsActiveFalseAndRolesIsEmpty(Pageable pageable);
 }

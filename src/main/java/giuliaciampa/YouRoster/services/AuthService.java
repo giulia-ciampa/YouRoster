@@ -101,6 +101,7 @@ public class AuthService {
         User savedUser = userService.saveUser(user);
         // 6. Return DTO
         return new UserRegistrationResponseDTO(
+                savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getSurname(),
                 savedUser.getAccount().getEmail(),
