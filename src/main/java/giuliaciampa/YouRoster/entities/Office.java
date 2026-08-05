@@ -16,10 +16,10 @@ public class Office {
     @Column(name = "office_id")
     private UUID id;
 
-    @Column(name = "office_name", nullable = false, unique = true)
+    @Column(name = "office_name", nullable = false, unique = true, length = 40)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 40)
     private String address;
 
     @Column(name = "opening_time", nullable = false)
@@ -38,7 +38,7 @@ public class Office {
 
     //COSTRUTTORE VUOTO
 
-    protected Office() {
+    public Office() {
     }
 
     //GETTER E SETTER

@@ -27,14 +27,29 @@ public class User {
     @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
 
-    @Column(name = "place_of_birth", nullable = false)
+    @Column(name = "place_of_birth", nullable = false, length = 50)
     private String placeOfBirth;
 
-    @Column(name = "phone_number", nullable = false, unique = true)
+    @Column(nullable = false, length = 40)
+    private String nationality;
+
+    @Column(name = "phone_number", nullable = false, unique = true, length = 20)
     private String phoneNumber;
 
-    @Column(nullable = false)
-    private String address;
+    @Column(nullable = false, length = 60)
+    private String streetAddress;
+
+    @Column(name = "house_number", length = 10, nullable = false)
+    private String houseNumber;
+
+    @Column(name = "zip_code", length = 5, nullable = false)
+    private String zipCode;
+
+    @Column(length = 20, nullable = false)
+    private String city;
+
+    @Column(length = 2, nullable = false)
+    private String province;
 
     @Column(name = "photo_url")
     private String photoUrl;
@@ -50,6 +65,7 @@ public class User {
     private String documentNumber;
 
     @Column(name = "document_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     private DocumentType documentType;
 
     @Column(name = "issue_date", nullable = false)
@@ -64,16 +80,21 @@ public class User {
 
     //COSTRUTTORE
 
-    public User(String name, String surname, String taxCode, LocalDate dateOfBirth, String placeOfBirth, String phoneNumber, String address, String photoUrl, Office referenceOffice, String iban, String documentNumber, DocumentType documentType, LocalDate issueDate, LocalDate expirationDate, Account account) {
+    public User(String name, String surname, String taxCode, LocalDate dateOfBirth, String placeOfBirth, String nationality, String phoneNumber, String streetAddress, String houseNumber, String zipCode, String city, String province, Office referenceOffice, String iban, String documentNumber, DocumentType documentType, LocalDate issueDate, LocalDate expirationDate, Account account) {
 
         this.name = name;
         this.surname = surname;
+        this.nationality = nationality;
         this.taxCode = taxCode;
         this.dateOfBirth = dateOfBirth;
         this.placeOfBirth = placeOfBirth;
         this.phoneNumber = phoneNumber;
-        this.address = address;
-        this.photoUrl = photoUrl;
+        this.streetAddress = streetAddress;
+        this.houseNumber = houseNumber;
+        this.zipCode = zipCode;
+        this.city = city;
+        this.province = province;
+        this.photoUrl = "https://ui-avatars.com/api/?name=" + name + surname;
         this.referenceOffice = referenceOffice;
         this.iban = iban;
         this.documentNumber = documentNumber;
@@ -85,7 +106,7 @@ public class User {
 
     //COSTRUTTORE VUOTO
 
-    protected User() {
+    public User() {
     }
 
     //GETTER E SETTER
@@ -142,12 +163,44 @@ public class User {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getAddress() {
-        return address;
+    public String getStreetAddress() {
+        return streetAddress;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setAddress(String streetAddress) {
+        this.streetAddress = streetAddress;
+    }
+
+    public String getHouseNumber() {
+        return houseNumber;
+    }
+
+    public void setHouseNumber(String houseNumber) {
+        this.houseNumber = houseNumber;
+    }
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
     }
 
     public String getPhotoUrl() {
@@ -214,6 +267,14 @@ public class User {
         this.account = account;
     }
 
+    public String getNationality() {
+        return nationality;
+    }
+
+    public void setNationality(String nationality) {
+        this.nationality = nationality;
+    }
+
     //TOSTRING
 
 
@@ -223,11 +284,16 @@ public class User {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", surname='" + surname + '\'' +
+                ", nationality='" + nationality + '\'' +
                 ", taxCode='" + taxCode + '\'' +
                 ", dateOfBirth=" + dateOfBirth +
                 ", placeOfBirth='" + placeOfBirth + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
-                ", address='" + address + '\'' +
+                ", streetAddress='" + streetAddress + '\'' +
+                ", houseNumber='" + houseNumber + '\'' +
+                ", zipCode='" + zipCode + '\'' +
+                ", city='" + city + '\'' +
+                ", province='" + province + '\'' +
                 ", photoUrl='" + photoUrl + '\'' +
                 ", referenceOffice=" + referenceOffice +
                 ", iban='" + iban + '\'' +

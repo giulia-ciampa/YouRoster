@@ -1,14 +1,22 @@
 package giuliaciampa.YouRoster.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.jspecify.annotations.NonNull;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 @Entity
 @Table(name = "accounts")
-public class Account {
+public class Account implements UserDetails {
 
     //ATTRIBUTI
     @Id
@@ -19,13 +27,18 @@ public class Account {
     @Column(length = 50, unique = true, nullable = false)
     private String email;
 
+    @JsonIgnore
     @Column(length = 100, nullable = false)
     private String password;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
-    @ManyToMany
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "accounts_roles",
             joinColumns = @JoinColumn(name = "account_id"),
@@ -42,7 +55,7 @@ public class Account {
 
     //COSTRUTTORE VUOTO
 
-    protected Account() {
+    public Account() {
     }
 
     //METODO ATTIVAZIONE ACCOUNT
@@ -74,15 +87,6 @@ public class Account {
         return isActive;
     }
 
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public Set<Role> getRoles() {
         return roles;
     }
@@ -91,14 +95,51 @@ public class Account {
         this.roles = roles;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .toList();
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    @NonNull
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.isActive;
+    }
+
+
     //TO STRING
 
     @Override
     public String toString() {
         return "Account{" +
                 "id=" + id +
-                ", email='" + email + '\'' +
+                ", email=" + email + '\'' +
                 ", isActive=" + isActive +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }
