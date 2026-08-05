@@ -139,14 +139,12 @@ public class AccountService {
     }
 
     //3. RIFIUTA E RIMOZIONE DELLA RICHIESTA (ADMIN)
+    @Transactional
     public void rejectAccount(UUID id) {
         User userFound = userService.findByAccountId(id);
         Account accountFound = findById(id);
 
-        if (userFound != null) {
-            userService.deleteUser(userFound.getId());
-        }
-
+        //1. account non eliminabile
         if (accountFound.isActive()) {
             throw new BadRequestException("L'account " + accountFound + " è attivo, non può essere eliminato");
         }
@@ -155,6 +153,12 @@ public class AccountService {
             throw new BadRequestException("Impossibile eliminare: l'account è stato disabilitato dall'amministratore.");
         }
 
+        //2. elimina prima lo user
+        if (userFound != null) {
+            userService.deleteUser(userFound.getId());
+        }
+
+        //3. elimina account
         accountRepository.delete(accountFound);
     }
 
