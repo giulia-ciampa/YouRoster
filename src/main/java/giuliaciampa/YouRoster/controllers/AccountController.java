@@ -53,5 +53,12 @@ public class AccountController {
         accountService.rejectAccount(id);
     }
 
+    //4. DISABILITA ACCOUNT
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PatchMapping("/{accountId}/disable")
+    public AdminApprovalResponseDTO disableAccount(@PathVariable UUID accountId) {
+        return accountService.disableAccount(accountId);
+    }
+
 
 }

@@ -48,7 +48,8 @@ public class AccountService {
         this.emailService = emailService;
     }
 
-    // CREA ACCOUNT PER L'ADMIN SE NON ESISTE
+
+    //1. CREA ACCOUNT PER L'ADMIN SE NON ESISTE
     public void saveAdmin(String defaultEmail, String defaultPassword) {
         boolean adminExist = accountRepository.existsByRoles_Name("ADMIN");
 
@@ -65,7 +66,7 @@ public class AccountService {
         }
     }
 
-    //APPROVA E ASSEGNA RUOLO + SEDE (ADMIN)
+    //2. APPROVA E ASSEGNA RUOLO + SEDE (ADMIN)
     @Transactional
     public AdminApprovalResponseDTO approveAssignRolesAndOffice(UUID id, AdminApprovalRequestDTO payload) {
         Account account = accountRepository.findById(id).orElseThrow(() -> new NotFoundException("l'utente con id " + id + " non è stato trovato"));
@@ -132,15 +133,28 @@ public class AccountService {
         return new AdminApprovalResponseDTO("L'account dell'utente " + user.getName() + " " + user.getSurname() + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
     }
 
-
     //FIND BY ID
     public Account findById(UUID id) {
         return accountRepository.findById(id).orElseThrow(() -> new NotFoundException("L'account con id " + id + " non è stato trovato"));
     }
 
-    // RIFIUTA E RIMOZIONE RICHIESTA (ADMIN)
+    //3. RIFIUTA E RIMOZIONE DELLA RICHIESTA (ADMIN)
     public void rejectAccount(UUID id) {
+        User userFound = userService.findByAccountId(id);
         Account accountFound = findById(id);
+
+        if (userFound != null) {
+            userService.deleteUser(userFound.getId());
+        }
+
+        if (accountFound.isActive()) {
+            throw new BadRequestException("L'account " + accountFound + " è attivo, non può essere eliminato");
+        }
+
+        if (!accountFound.isActive() && accountFound.getRoles() != null && !accountFound.getRoles().isEmpty()) {
+            throw new BadRequestException("Impossibile eliminare: l'account è stato disabilitato dall'amministratore.");
+        }
+
         accountRepository.delete(accountFound);
     }
 
@@ -148,7 +162,6 @@ public class AccountService {
     public Account findAccountByEmail(String email) {
         return accountRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("L'account con email " + email + " non è stato trovato"));
     }
-
 
     //METODO CONTROLLA SE L'EMAIL ESISTE GIA' A DB, SE ESISTE LANCIA ECCEZIONE (per la registrazione)
     public String checkIfEmailAlreadyExists(String email) {
@@ -178,7 +191,6 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-
     //TROVA GLI ACCOUNT IN ATTESA DI ESSERE ACCETTATI
     public Page<Account> getPendingAccounts(int page, int size, String sortBy) {
 
@@ -195,6 +207,32 @@ public class AccountService {
     //SALVA ACCOUNT PER AGGIORNAMENTO CREDENZIALI
     public Account save(Account account) {
         return accountRepository.save(account);
+    }
+
+
+    //ADMIN PUO' DISABILITARE UN ACCOUNT
+    @Transactional
+    public AdminApprovalResponseDTO disableAccount(UUID accountId) {
+        User foundUser = userService.findByAccountId(accountId);
+        Account foundAccount = findById(accountId);
+
+        if (!foundAccount.isActive()) {
+            throw new BadRequestException("L'account " + foundUser.getName() + " " + foundUser.getSurname() + " è già disabilitato");
+        }
+
+        foundAccount.deactivate();
+        accountRepository.save(foundAccount);
+
+        //email avviso account disabilitato
+        String htmlBody = EmailTemplateBuilder.buildAccountDisableEmail(foundUser.getName());
+
+        emailService.sendHtmlEmail(
+                foundAccount.getEmail(),
+                "Disattivazione Account - YouRoster",
+                htmlBody
+        );
+
+        return new AdminApprovalResponseDTO("L'account appartenente a " + foundUser.getName() + " " + foundUser.getSurname() + " è stato disabilitato con successo", LocalDateTime.now());
     }
 
 

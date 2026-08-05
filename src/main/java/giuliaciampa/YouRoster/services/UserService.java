@@ -17,7 +17,6 @@ public class UserService {
     }
 
     //CONTROLLA SE L'UTENTE GIA' ESISTE DAL CODICE FISCALE
-
     public String checkIfTaxCodeAlreadyExists(String taxCode) {
 
         String cleanTaxCode = taxCode.trim().toUpperCase();
@@ -49,5 +48,11 @@ public class UserService {
     //TROVA LO USER IN BASE ALL'ID DELL'ACCOUNT
     public User findByAccountId(UUID accountId) {
         return userRepository.findByAccount_Id(accountId).orElseThrow(() -> new NotFoundException("l'utente con l'id dell'account " + accountId + " non è stato trovato"));
+    }
+
+    //CANCELLA LO USER PER POTER CANCELLARE L'ACCOUNT (ADMIN)
+    public void deleteUser(UUID userId) {
+        User foundUser = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("L'utente con id " + userId + " non è stato trovato"));
+        userRepository.delete(foundUser);
     }
 }
