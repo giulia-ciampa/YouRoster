@@ -3,7 +3,6 @@ package giuliaciampa.YouRoster.services;
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
 import giuliaciampa.YouRoster.dto.responses.AccountSummaryDTO;
 import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
-import giuliaciampa.YouRoster.dto.responses.CurrentAccountResponseDTO;
 import giuliaciampa.YouRoster.emailTemplates.EmailTemplateBuilder;
 import giuliaciampa.YouRoster.entities.*;
 import giuliaciampa.YouRoster.exceptions.AlreadyExistsException;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -392,65 +390,7 @@ public class AccountService {
         });
     }
 
-    //9. VISUALIZZA PROPRIO PROFILO /ME
-    public CurrentAccountResponseDTO getMyProfile(Account currentAccount) {
-        Account myAccount = findById(currentAccount.getId());
 
-        User user = myAccount.getUser();
-
-        String name = (user != null) ? user.getName() : null;
-        String surname = (user != null) ? user.getSurname() : null;
-        LocalDate dateOfBirth = (user != null) ? user.getDateOfBirth() : null;
-        String placeOfBirth = (user != null) ? user.getPlaceOfBirth() : null;
-        String phoneNumber = (user != null) ? user.getPhoneNumber() : null;
-        String taxCode = (user != null) ? user.getTaxCode() : null;
-        String photoUrl = (user != null) ? user.getPhotoUrl() : null;
-        String streetAddress = (user != null) ? user.getStreetAddress() : null;
-        String houseNumber = (user != null) ? user.getHouseNumber() : null;
-        String zipCode = (user != null) ? user.getZipCode() : null;
-        String city = (user != null) ? user.getCity() : null;
-        String province = (user != null) ? user.getProvince() : null;
-        String iban = (user != null) ? user.getIban() : null;
-        String documentNumber = (user != null) ? user.getDocumentNumber() : null;
-        DocumentType documentType = (user != null) ? user.getDocumentType() : null;
-        LocalDate issueDate = (user != null) ? user.getIssueDate() : null;
-        LocalDate expirationDate = (user != null) ? user.getExpirationDate() : null;
-        String documentFrontUrl = (user != null) ? user.getDocumentFrontUrl() : null;
-        String documentBackUrl = (user != null) ? user.getDocumentBackUrl() : null;
-        String taxCodeCardFrontUrl = (user != null) ? user.getTaxCodeCardFrontUrl() : null;
-        String taxCodeCardBackUrl = (user != null) ? user.getTaxCodeCardBackUrl() : null;
-        String officeName = (user != null && user.getReferenceOffice() != null)
-                ? user.getReferenceOffice().getName()
-                : "Nessuna sede assegnata";
-
-        return new CurrentAccountResponseDTO(
-                myAccount.getId(),
-                name,
-                surname,
-                dateOfBirth,
-                placeOfBirth,
-                phoneNumber,
-                taxCode,
-                photoUrl,
-                streetAddress,
-                houseNumber,
-                zipCode,
-                city,
-                province,
-                iban,
-                documentNumber,
-                documentType,
-                issueDate,
-                expirationDate,
-                documentFrontUrl,
-                documentBackUrl,
-                taxCodeCardFrontUrl,
-                taxCodeCardBackUrl,
-                officeName,
-                myAccount.getEmail(),
-                myAccount.getStatus()
-        );
-    }
 }
 
 
