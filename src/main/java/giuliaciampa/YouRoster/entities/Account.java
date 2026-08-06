@@ -31,8 +31,9 @@ public class Account implements UserDetails {
     @Column(length = 100, nullable = false)
     private String password;
 
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    @Column(name = "account_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status = AccountStatus.PENDING;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -46,11 +47,15 @@ public class Account implements UserDetails {
     )
     private Set<Role> roles = new HashSet<>();
 
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private User user;
+
     //COSTRUTTORE
     public Account(String email, String password) {
         this.email = email;
         this.password = password;
-        this.isActive = false;
+        this.status = AccountStatus.PENDING;
     }
 
     //COSTRUTTORE VUOTO
@@ -58,16 +63,6 @@ public class Account implements UserDetails {
     public Account() {
     }
 
-    //METODO ATTIVAZIONE ACCOUNT
-
-    public void activate() {
-        isActive = true;
-    }
-
-    //METODO DISATTIVAZIONE ACCOUNT
-    public void deactivate() {
-        isActive = false;
-    }
 
     //GETTER E SETTER
 
@@ -83,8 +78,12 @@ public class Account implements UserDetails {
         this.email = email;
     }
 
-    public boolean isActive() {
-        return isActive;
+    public AccountStatus getAccountStatus() {
+        return status;
+    }
+
+    public void setAccountStatus(AccountStatus status) {
+        this.status = status;
     }
 
     public Set<Role> getRoles() {
@@ -103,6 +102,13 @@ public class Account implements UserDetails {
         this.createdAt = createdAt;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -127,7 +133,26 @@ public class Account implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.isActive;
+        return this.status == AccountStatus.ACTIVE;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return this.status != AccountStatus.DISABLED;
+    }
+
+    //METODI
+    // Helper method utili (opzionali ma comodissimi)
+    public boolean isActive() {
+        return this.status == AccountStatus.ACTIVE;
+    }
+
+    public boolean isPending() {
+        return this.status == AccountStatus.PENDING;
+    }
+
+    public boolean isSuspended() {
+        return this.status == AccountStatus.DISABLED;
     }
 
 
@@ -138,7 +163,7 @@ public class Account implements UserDetails {
         return "Account{" +
                 "id=" + id +
                 ", email=" + email + '\'' +
-                ", isActive=" + isActive +
+                ", account status=" + status +
                 ", createdAt=" + createdAt +
                 '}';
     }

@@ -8,6 +8,7 @@ import giuliaciampa.YouRoster.dto.responses.LoginResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UpdateCredentialsResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
+import giuliaciampa.YouRoster.exceptions.UnauthorizedException;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.AuthService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -79,13 +80,17 @@ public class AuthController {
             @RequestBody @Validated UpdateCredentialsRequestDTO payload,
             BindingResult validationResult) {
 
+        if (currentAccount == null) {
+            throw new UnauthorizedException("Sessione non valida o utente non autenticato");
+        }
+
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .toList();
             throw new ValidationException(errorsList);
         }
-
+        
         return authService.updateCredentials(currentAccount.getId(), payload);
 
     }

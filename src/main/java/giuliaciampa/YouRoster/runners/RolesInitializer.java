@@ -12,14 +12,12 @@ import org.springframework.stereotype.Component;
 public class RolesInitializer implements CommandLineRunner {
     //ATTRIBUTI
     private final RoleService roleService;
-    private final AuthService authService;
-    private final AccountService accountService;
+
 
     //COSTRUTTORE
     public RolesInitializer(RoleService roleService, AuthService authService, AccountService accountService) {
         this.roleService = roleService;
-        this.authService = authService;
-        this.accountService = accountService;
+        
     }
 
     @Override

@@ -47,7 +47,7 @@ public class UserService {
 
     //TROVA LO USER IN BASE ALL'ID DELL'ACCOUNT
     public User findByAccountId(UUID accountId) {
-        return userRepository.findByAccount_Id(accountId).orElseThrow(() -> new NotFoundException("l'utente con l'id dell'account " + accountId + " non è stato trovato"));
+        return userRepository.findByAccount_Id(accountId).orElseThrow(() -> new NotFoundException("l'utente con account id " + accountId + " non è stato trovato"));
     }
 
     //CANCELLA LO USER PER POTER CANCELLARE L'ACCOUNT (ADMIN)

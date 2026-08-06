@@ -43,6 +43,10 @@ public class RoleService {
         if (roleRepository.findByName("STAFF").isEmpty()) {
             roleRepository.save(new Role("STAFF"));
         }
+
+        if (roleRepository.findByName("").isEmpty()) {
+            roleRepository.save(new Role(""));
+        }
     }
 
     //2. METODO PER CERCARE UN RUOLO PER NOME, DA USARE PER ASSEGNARLO

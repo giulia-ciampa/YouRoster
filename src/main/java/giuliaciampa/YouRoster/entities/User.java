@@ -74,13 +74,25 @@ public class User {
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
 
+    @Column(name = "document_front_url", nullable = false)
+    private String documentFrontUrl;
+
+    @Column(name = "document_back_url", nullable = false)
+    private String documentBackUrl;
+
+    @Column(name = "tax_code_front_url", nullable = false)
+    private String taxCodeCardFrontUrl;
+
+    @Column(name = "tax_code_back_url", nullable = false)
+    private String taxCodeCardBackUrl;
+
     @OneToOne
     @JoinColumn(name = "account_id", unique = true, nullable = false)
     private Account account;
 
     //COSTRUTTORE
 
-    public User(String name, String surname, String taxCode, LocalDate dateOfBirth, String placeOfBirth, String nationality, String phoneNumber, String streetAddress, String houseNumber, String zipCode, String city, String province, Office referenceOffice, String iban, String documentNumber, DocumentType documentType, LocalDate issueDate, LocalDate expirationDate, Account account) {
+    public User(String name, String surname, String taxCode, LocalDate dateOfBirth, String placeOfBirth, String nationality, String phoneNumber, String streetAddress, String houseNumber, String zipCode, String city, String province, Office referenceOffice, String iban, String documentNumber, DocumentType documentType, LocalDate issueDate, LocalDate expirationDate, String documentFrontUrl, String documentBackUrl, String taxCodeCardFrontUrl, String taxCodeCardBackUrl, Account account) {
 
         this.name = name;
         this.surname = surname;
@@ -101,6 +113,10 @@ public class User {
         this.documentType = documentType;
         this.issueDate = issueDate;
         this.expirationDate = expirationDate;
+        this.documentFrontUrl = documentFrontUrl;
+        this.documentBackUrl = documentBackUrl;
+        this.taxCodeCardFrontUrl = taxCodeCardFrontUrl;
+        this.taxCodeCardBackUrl = taxCodeCardBackUrl;
         this.account = account;
     }
 
@@ -167,7 +183,7 @@ public class User {
         return streetAddress;
     }
 
-    public void setAddress(String streetAddress) {
+    public void setStreetAddress(String streetAddress) {
         this.streetAddress = streetAddress;
     }
 
@@ -275,33 +291,69 @@ public class User {
         this.nationality = nationality;
     }
 
+    public String getDocumentFrontUrl() {
+        return documentFrontUrl;
+    }
+
+    public void setDocumentFrontUrl(String documentFrontUrl) {
+        this.documentFrontUrl = documentFrontUrl;
+    }
+
+    public String getDocumentBackUrl() {
+        return documentBackUrl;
+    }
+
+    public void setDocumentBackUrl(String documentBackUrl) {
+        this.documentBackUrl = documentBackUrl;
+    }
+
+    public String getTaxCodeCardFrontUrl() {
+        return taxCodeCardFrontUrl;
+    }
+
+    public void setTaxCodeCardFrontUrl(String taxCodeCardFrontUrl) {
+        this.taxCodeCardFrontUrl = taxCodeCardFrontUrl;
+    }
+
+    public String getTaxCodeCardBackUrl() {
+        return taxCodeCardBackUrl;
+    }
+
+    public void setTaxCodeCardBackUrl(String taxCodeCardBackUrl) {
+        this.taxCodeCardBackUrl = taxCodeCardBackUrl;
+    }
+
     //TOSTRING
 
 
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", surname='" + surname + '\'' +
-                ", nationality='" + nationality + '\'' +
-                ", taxCode='" + taxCode + '\'' +
-                ", dateOfBirth=" + dateOfBirth +
-                ", placeOfBirth='" + placeOfBirth + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", streetAddress='" + streetAddress + '\'' +
-                ", houseNumber='" + houseNumber + '\'' +
-                ", zipCode='" + zipCode + '\'' +
-                ", city='" + city + '\'' +
-                ", province='" + province + '\'' +
-                ", photoUrl='" + photoUrl + '\'' +
-                ", referenceOffice=" + referenceOffice +
-                ", iban='" + iban + '\'' +
-                ", documentNumber='" + documentNumber + '\'' +
-                ", documentType=" + documentType +
-                ", issueDate=" + issueDate +
-                ", expirationDate=" + expirationDate +
-                ", account=" + account +
+                "id=" + getId() +
+                ", name='" + getName() + '\'' +
+                ", surname='" + getSurname() + '\'' +
+                ", taxCode='" + getTaxCode() + '\'' +
+                ", dateOfBirth=" + getDateOfBirth() +
+                ", placeOfBirth='" + getPlaceOfBirth() + '\'' +
+                ", nationality='" + getNationality() + '\'' +
+                ", phoneNumber='" + getPhoneNumber() + '\'' +
+                ", streetAddress='" + getStreetAddress() + '\'' +
+                ", houseNumber='" + getHouseNumber() + '\'' +
+                ", zipCode='" + getZipCode() + '\'' +
+                ", city='" + getCity() + '\'' +
+                ", province='" + getProvince() + '\'' +
+                ", photoUrl='" + getPhotoUrl() + '\'' +
+                ", referenceOffice=" + getReferenceOffice() +
+                ", iban='" + getIban() + '\'' +
+                ", documentNumber='" + getDocumentNumber() + '\'' +
+                ", documentType=" + getDocumentType() +
+                ", issueDate=" + getIssueDate() +
+                ", expirationDate=" + getExpirationDate() +
+                ", documentFrontUrl='" + getDocumentFrontUrl() + '\'' +
+                ", documentBackUrl='" + getDocumentBackUrl() + '\'' +
+                ", taxCodeCardFrontUrl='" + getTaxCodeCardFrontUrl() + '\'' +
+                ", taxCodeCardBackUrl='" + getTaxCodeCardBackUrl() + '\'' +
+                ", account=" + getAccount() +
                 '}';
     }
 }

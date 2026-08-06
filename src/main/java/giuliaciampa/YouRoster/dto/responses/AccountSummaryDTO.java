@@ -1,5 +1,7 @@
 package giuliaciampa.YouRoster.dto.responses;
 
+import giuliaciampa.YouRoster.entities.AccountStatus;
+
 import java.util.UUID;
 
 public record AccountSummaryDTO(
@@ -10,6 +12,6 @@ public record AccountSummaryDTO(
         String photoUrl,
         String officeName,
         String email,
-        boolean isActive
+        AccountStatus status
 ) {
 }
