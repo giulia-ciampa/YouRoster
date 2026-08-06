@@ -1,19 +1,27 @@
 package giuliaciampa.YouRoster.services;
 
+import com.cloudinary.Cloudinary;
 import giuliaciampa.YouRoster.entities.User;
 import giuliaciampa.YouRoster.exceptions.AlreadyExistsException;
 import giuliaciampa.YouRoster.exceptions.NotFoundException;
+import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.repositories.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final Cloudinary cloudinary;
 
-    public UserService(UserRepository userRepository) {
+
+    public UserService(UserRepository userRepository, Cloudinary cloudinary, Cloudinary cloudinary1) {
         this.userRepository = userRepository;
+        this.cloudinary = cloudinary1;
     }
 
     //CONTROLLA SE L'UTENTE GIA' ESISTE DAL CODICE FISCALE
@@ -51,8 +59,60 @@ public class UserService {
     }
 
     //CANCELLA LO USER PER POTER CANCELLARE L'ACCOUNT (ADMIN)
-    public void deleteUser(UUID userId) {
-        User foundUser = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("L'utente con id " + userId + " non è stato trovato"));
-        userRepository.delete(foundUser);
+//    public void deleteUser(UUID userId) {
+//        User foundUser = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("L'utente con id " + userId + " non è stato trovato"));
+//        userRepository.delete(foundUser);
+//    }
+
+    //METODO CARICAMENTO DOCUMENTI
+    public String uploadDocuments(MultipartFile file, String documentName) {
+
+        if (file == null || file.isEmpty()) {
+            throw new ValidationException("Il caricamento del file per " + documentName + " è obbligatorio");
+        }
+
+        //controllo dimensione
+        long maxSizeBytes = 6 * 1024 * 1024;
+        if (file.getSize() > maxSizeBytes) {
+            throw new ValidationException("Il file " + documentName + " supera il limite massimo di 6 MB.");
+        }
+
+        //controllo tipo file, solo immagini o pdf
+        String originalFilename = file.getOriginalFilename();
+
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new ValidationException("Il nome del file per " + documentName + " non è valido.");
+        }
+
+        String lowerName = originalFilename.toLowerCase();
+
+        boolean isValidExtension = lowerName.endsWith(".png") ||
+                lowerName.endsWith(".jpeg") ||
+                lowerName.endsWith(".jpg") ||
+                lowerName.endsWith(".pdf");
+
+        if (!isValidExtension) {
+            throw new ValidationException("Il file " + documentName + " deve avere un'estensione valida (.png, .jpg, .jpeg, .pdf).");
+        }
+
+        // Controllo sul MIME Type per ulteriore sicurezza
+        String contentType = file.getContentType();
+        if (contentType == null || (!contentType.startsWith("image/") && !contentType.equals("application/pdf"))) {
+            throw new ValidationException("Il formato del file " + documentName + " non è supportato.");
+        }
+
+        //upload del file su cloudinary
+        try {
+            Map<String, Object> uploadParams = Map.of(
+                    "folder", "documents",
+                    "quality", "auto" // Compressione automatica di Cloudinary
+            );
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadParams);
+            return uploadResult.get("secure_url").toString();
+        } catch (IOException e) {
+            throw new RuntimeException("Errore durante il caricamento di " + documentName, e);
+        }
+
     }
+    
 }

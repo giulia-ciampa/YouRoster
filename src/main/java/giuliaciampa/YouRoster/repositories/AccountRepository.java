@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,11 +20,8 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     Page<Account> findByRolesNameIgnoreCase(String roleName, Pageable pageable);
 
-    Page<Account> findByAccountStatus(AccountStatus accountStatus, Pageable pageable);
+    Page<Account> findByStatus(AccountStatus accountStatus, Pageable pageable);
 
-    Page<Account> findByRolesNameIgnoreCaseAndAccountStatus(String roleName, AccountStatus status, Pageable pageable);
-
-    List<Account> findAccountByStatus(AccountStatus status);
-
-
+    Page<Account> findByRolesNameIgnoreCaseAndStatus(String roleName, AccountStatus status, Pageable pageable);
+    
 }

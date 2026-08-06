@@ -2,6 +2,7 @@ package giuliaciampa.YouRoster.dto.requests;
 
 import giuliaciampa.YouRoster.entities.DocumentType;
 import jakarta.validation.constraints.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -51,7 +52,6 @@ public record UserRegistrationRequestDTO(
         @Size(min = 2, max = 2, message = "La provincia deve essere di 2 lettere")
         String province,
 
-
         UUID referenceOfficeId,
 
         @Pattern(
@@ -74,6 +74,18 @@ public record UserRegistrationRequestDTO(
         @Future(message = "Il documento è scaduto!")
         @NotNull(message = "La data di scadenza del documento è obbligatoria")
         LocalDate expirationDate,
+
+        @NotNull(message = "Il fronte del documento è obbligatorio")
+        MultipartFile documentFront,
+
+        @NotNull(message = "Il retro del documento è obbligatorio")
+        MultipartFile documentBack,
+
+        @NotNull(message = "Il fronte del codice fiscale è obbligatorio")
+        MultipartFile taxCodeFront,
+
+        @NotNull(message = "Il retro del codice fiscale è obbligatorio")
+        MultipartFile taxCodeBack,
 
         @Email(message = "Email non valida")
         @NotBlank(message = "L'indirizzo email è obbligatorio")

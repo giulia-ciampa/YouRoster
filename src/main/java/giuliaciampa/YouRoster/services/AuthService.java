@@ -1,5 +1,6 @@
 package giuliaciampa.YouRoster.services;
 
+import com.cloudinary.Cloudinary;
 import giuliaciampa.YouRoster.dto.requests.LoginRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UpdateCredentialsRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
@@ -26,19 +27,19 @@ import java.util.UUID;
 public class AuthService {
     private final AccountService accountService;
     private final UserService userService;
-    private final RoleService roleService;
     private final PasswordEncoder bcrypt;
     private final JWTTools jwtTools;
     private final RefreshTokenService refreshTokenService;
 
-    public AuthService(AccountService accountService, UserService userService, RoleService roleService, PasswordEncoder bcrypt, JWTTools jwtTools, RefreshTokenService refreshTokenService) {
+
+    public AuthService(AccountService accountService, UserService userService, RoleService roleService, PasswordEncoder bcrypt, JWTTools jwtTools, RefreshTokenService refreshTokenService, Cloudinary cloudinary) {
         this.accountService = accountService;
         this.userService = userService;
-        this.roleService = roleService;
         this.bcrypt = bcrypt;
         this.jwtTools = jwtTools;
         this.refreshTokenService = refreshTokenService;
     }
+
 
     //METODO SALVA NUOVO ACCOUNT-REGISTER E CREA UNO USER
     @Transactional
@@ -72,11 +73,18 @@ public class AuthService {
             throw new ValidationException("Il formato del numero di documento non è valido per la nazionalità " + payload.nationality());
         }
 
-        // 4. Salva Account
+        //UPLOAD DEI DOCUMENTI TRAMITE USER SERVICE
+        String documentFrontUrl = userService.uploadDocuments(payload.documentFront(), "Documento Fronte");
+        String documentBackUrl = userService.uploadDocuments(payload.documentBack(), "Documento Retro");
+        String taxCodeCardFrontUrl = userService.uploadDocuments(payload.taxCodeFront(), "Fronte codice fiscale");
+        String taxCodeCardBackUrl = userService.uploadDocuments(payload.taxCodeBack(), "Retro codice fiscale");
+
+
+        //4. Salva Account
         Account savedAccount = accountService.saveAccount(correctEmail, payload.password(), null, AccountStatus.PENDING);
 
 
-        // 5. Crea e salva lo User associato
+        //6. Crea e salva lo User associato
         User user = new User();
         user.setName(payload.name());
         user.setSurname(payload.surname());
@@ -96,7 +104,12 @@ public class AuthService {
         user.setDocumentType(payload.documentType());
         user.setIssueDate(payload.issueDate());
         user.setExpirationDate(payload.expirationDate());
+        user.setDocumentFrontUrl(documentFrontUrl);
+        user.setDocumentBackUrl(documentBackUrl);
+        user.setTaxCodeCardFrontUrl(taxCodeCardFrontUrl);
+        user.setTaxCodeCardBackUrl(taxCodeCardBackUrl);
         user.setAccount(savedAccount);
+        savedAccount.setUser(user);
 
 
         User savedUser = userService.saveUser(user);
@@ -123,7 +136,7 @@ public class AuthService {
         }
 
         //3. verifica lo stato dell'account
-        switch (account.getAccountStatus()) {
+        switch (account.getStatus()) {
             case PENDING ->
                     throw new UnauthorizedException("Il tuo account è ancora in attesa di approvazione da parte dell'amministratore.");
             case DISABLED ->
@@ -201,7 +214,7 @@ public class AuthService {
         Account account = token.getAccount();
 
         //2b verifica che l'account sia ancora attivo
-        if (account.getAccountStatus() != AccountStatus.ACTIVE) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
             throw new UnauthorizedException("L'account non è attivo o risulta disabilitato.");
         }
 

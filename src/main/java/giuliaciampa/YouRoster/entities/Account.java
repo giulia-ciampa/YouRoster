@@ -78,11 +78,11 @@ public class Account implements UserDetails {
         this.email = email;
     }
 
-    public AccountStatus getAccountStatus() {
+    public AccountStatus getStatus() {
         return status;
     }
 
-    public void setAccountStatus(AccountStatus status) {
+    public void setStatus(AccountStatus status) {
         this.status = status;
     }
 

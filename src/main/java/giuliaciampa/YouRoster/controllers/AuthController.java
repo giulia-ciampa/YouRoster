@@ -13,6 +13,7 @@ import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.AuthService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -31,9 +32,9 @@ public class AuthController {
     }
 
     //1. REGISTRAZIONE
-    @PostMapping("/registration")
+    @PostMapping(value = "/registration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public UserRegistrationResponseDTO register(@RequestBody @Validated UserRegistrationRequestDTO payload, BindingResult validationResult) {
+    public UserRegistrationResponseDTO register(@ModelAttribute @Validated UserRegistrationRequestDTO payload, BindingResult validationResult) {
 
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
@@ -90,7 +91,7 @@ public class AuthController {
                     .toList();
             throw new ValidationException(errorsList);
         }
-        
+
         return authService.updateCredentials(currentAccount.getId(), payload);
 
     }

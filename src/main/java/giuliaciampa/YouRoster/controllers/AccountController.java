@@ -13,10 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -45,7 +43,7 @@ public class AccountController {
     //2.APPROVA E ASSEGNA RUOLO + SEDE (ADMIN)
     @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{id}/accept")
-    public AdminApprovalResponseDTO approveAndassignRoles(@PathVariable UUID id, @RequestBody @Validated AdminApprovalRequestDTO payload) {
+    public AdminApprovalResponseDTO approveAndassignRoles(@PathVariable UUID id, @RequestBody(required = false) AdminApprovalRequestDTO payload) {
         return accountService.approveAssignRolesAndOffice(id, payload);
     }
 
@@ -104,8 +102,17 @@ public class AccountController {
 
     //8. VISUALIZZA TUTTI GLI ACCOUNT ATTIVI
     @GetMapping("/active")
-    public List<AccountSummaryDTO> getActiveAccounts() {
-        return accountService.getActiveAccounts();
+    public Page<AccountSummaryDTO> getActiveAccounts(@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "15") int size,
+                                                     @RequestParam(defaultValue = "user.surname") String sortBy) {
+
+        if (size <= 0) size = 10;
+        if (size > 15) size = 15;
+        if (page < 0) page = 0;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+
+        return accountService.getActiveAccounts(pageable);
     }
 
     //9. VISUALIZZA IL TUO PROFILO

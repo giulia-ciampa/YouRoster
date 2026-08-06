@@ -19,9 +19,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -54,7 +54,7 @@ public class AccountService {
         User user = account.getUser();
 
         if (user == null) {
-            return new AccountSummaryDTO(account.getId(), "Utente di sistema", null, null, null, "Nessuna sede", account.getEmail(), account.getAccountStatus());
+            return new AccountSummaryDTO(account.getId(), "Utente di sistema", null, null, null, "Nessuna sede", account.getEmail(), account.getStatus());
         }
 
         String officeName = (user.getReferenceOffice() != null) ? user.getReferenceOffice().getName() : "Nessuna sede";
@@ -67,7 +67,7 @@ public class AccountService {
                 user.getPhotoUrl(),
                 officeName,
                 account.getEmail(),
-                account.getAccountStatus()
+                account.getStatus()
         );
     }
 
@@ -76,7 +76,7 @@ public class AccountService {
         Account account = new Account();
         account.setEmail(email);
         account.setPassword(bcrypt.encode(password));
-        account.setAccountStatus(accountStatus);
+        account.setStatus(accountStatus);
 
 
         if (roles != null && !roles.isEmpty()) {
@@ -139,7 +139,7 @@ public class AccountService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
 
-        Page<Account> accountsPage = accountRepository.findByAccountStatus(AccountStatus.PENDING, pageable);
+        Page<Account> accountsPage = accountRepository.findByStatus(AccountStatus.PENDING, pageable);
 
         return accountsPage.map(this::convertToAccountSummaryDTO);
     }
@@ -150,25 +150,35 @@ public class AccountService {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("L'account con id " + id + " non è stato trovato"));
 
-        if (account.getAccountStatus() == AccountStatus.ACTIVE) {
+        if (account.getStatus() == AccountStatus.ACTIVE) {
             throw new BadRequestException("L'account è già stato approvato ed è attivo.");
         }
 
+        // Estrazione sicura delle proprietà dal payload
+        UUID officeId = (payload != null) ? payload.officeId() : null;
+
         // 1. Mappatura dei ruoli (default STAFF se vuoto)
-        Set<Role> rolesToAssign;
-        if (payload.roles() == null || payload.roles().isEmpty()) {
+        Set<Role> rolesToAssign = new HashSet<>();
+        if (payload == null || payload.roles() == null || payload.roles().isEmpty()) {
             Role defaultRole = roleService.findRoleByName("STAFF");
-            rolesToAssign = Set.of(defaultRole);
+            rolesToAssign.add(defaultRole);
         } else {
             rolesToAssign = payload.roles().stream()
                     .map(roleService::findRoleByName)
                     .collect(Collectors.toSet());
         }
 
+        if (account.getRoles() == null) {
+            account.setRoles(new HashSet<>());
+        }
+        account.getRoles().clear();
+        account.getRoles().addAll(rolesToAssign);
+
         // 2. Recupera lo user
         User user = account.getUser();
         String userName = (user != null) ? user.getName() : account.getEmail();
         String userSurname = (user != null) ? user.getSurname() : "Utente del sistema";
+
 
         // 3. Verifica ruoli
         boolean isCoordinator = rolesToAssign.stream()
@@ -177,16 +187,18 @@ public class AccountService {
         // 4. Gestione Sede
         Office officeToAssign = null;
         if (isCoordinator) {
-            if (payload.officeId() == null) {
+            if (officeId == null) {
                 throw new BadRequestException("Il coordinatore " + userName + " " + userSurname + " deve avere una sede di riferimento");
             }
-            officeToAssign = officeService.findById(payload.officeId());
-        } else if (payload.officeId() != null) {
-            officeToAssign = officeService.findById(payload.officeId());
+            officeToAssign = officeService.findById(officeId);
+        } else if (officeId != null) {
+            officeToAssign = officeService.findById(officeId);
         }
 
+        String officeName = (officeToAssign != null) ? officeToAssign.getName() : "Nessun ufficio/sede assegnata";
+
         // 5. Attivazione e salvataggio account
-        account.setAccountStatus(AccountStatus.ACTIVE);
+        account.setStatus(AccountStatus.ACTIVE);
         account.setRoles(rolesToAssign);
         accountRepository.save(account);
 
@@ -204,7 +216,7 @@ public class AccountService {
         String htmlBody = EmailTemplateBuilder.buildAccountApprovalEmail(
                 userName,
                 roleNames,
-                officeToAssign != null ? officeToAssign.getName() : "Non è stata assegnata nessuna sede specifica",
+                officeToAssign != null ? officeToAssign.getName() : "Al momento non è stata assegnata nessuna sede specifica",
                 loginUrl
         );
 
@@ -228,7 +240,7 @@ public class AccountService {
         Account accountFound = findById(id);
 
         //1. Controllo di sicurezza: non si può rifiutare un account già attivo
-        if (accountFound.getAccountStatus() == AccountStatus.ACTIVE) {
+        if (accountFound.getStatus() == AccountStatus.ACTIVE) {
             throw new BadRequestException("Impossibile rifiutare: l'account è già attivo.");
         }
 
@@ -250,7 +262,7 @@ public class AccountService {
 
         // 4. Ritorna il DTO di risposta
         return new AdminApprovalResponseDTO(
-                "La richiesta di registrazione per " + userName + " " + userSurname + " è stata rifiutata e rimossa dal sistema.",
+                "La richiesta di registrazione dell'utente " + userName + " " + userSurname + " è stata rifiutata e rimossa dal sistema.",
                 LocalDateTime.now()
         );
     }
@@ -264,11 +276,11 @@ public class AccountService {
         String userName = (foundUser != null) ? foundUser.getName() : foundAccount.getEmail();
         String userSurname = (foundUser != null) ? foundUser.getSurname() : "Utente del sistema";
 
-        if (foundAccount.getAccountStatus() == AccountStatus.DISABLED) {
+        if (foundAccount.getStatus() == AccountStatus.DISABLED) {
             throw new BadRequestException("L'account " + userName + " " + userSurname + " è già disabilitato");
         }
 
-        foundAccount.setAccountStatus(AccountStatus.DISABLED);
+        foundAccount.setStatus(AccountStatus.DISABLED);
         accountRepository.save(foundAccount);
 
         // Email avviso account disabilitato
@@ -285,13 +297,13 @@ public class AccountService {
 
     // 5. DATO UN RUOLO, TROVA GLI ACCOUNT CON QUEL RUOLO
     public Page<AccountSummaryDTO> getAccountByRole(String roleName, Pageable pageable) {
-        Page<Account> accountsPage = accountRepository.findByRolesNameIgnoreCaseAndAccountStatus(roleName, AccountStatus.ACTIVE, pageable);
+        Page<Account> accountsPage = accountRepository.findByRolesNameIgnoreCaseAndStatus(roleName, AccountStatus.ACTIVE, pageable);
         return accountsPage.map(this::convertToAccountSummaryDTO);
     }
 
     // 6. TROVA GLI ACCOUNT DISABILITATI
     public Page<AccountSummaryDTO> getSuspendedAccount(Pageable pageable) {
-        Page<Account> suspendedAccounts = accountRepository.findByAccountStatus(AccountStatus.DISABLED, pageable);
+        Page<Account> suspendedAccounts = accountRepository.findByStatus(AccountStatus.DISABLED, pageable);
         return suspendedAccounts.map(this::convertToAccountSummaryDTO);
     }
 
@@ -305,7 +317,7 @@ public class AccountService {
         String userSurname = (user != null) ? user.getSurname() : "Utente del sistema";
 
         //1. verifica che l'account sia effettivamente disattivato
-        if (account.getAccountStatus() == AccountStatus.ACTIVE) {
+        if (account.getStatus() == AccountStatus.ACTIVE) {
             throw new BadRequestException("L'account " + userName + " " + userSurname + " è già attivo.");
         }
 
@@ -314,7 +326,7 @@ public class AccountService {
         Role newRole = roleService.findRoleByName(targetRoleName);
 
         //3. attivo l'account e imposto il ruolo
-        account.setAccountStatus(AccountStatus.ACTIVE);
+        account.setStatus(AccountStatus.ACTIVE);
 
         Set<Role> updatedRoles = new HashSet<>();
         updatedRoles.add(newRole);
@@ -349,53 +361,100 @@ public class AccountService {
 
 
     //8. VISUALIZZARE TUTTI GLI ACCOUNT ATTIVI
-    public List<AccountSummaryDTO> getActiveAccounts() {
-        List<Account> activeAccounts = accountRepository.findAccountByStatus(AccountStatus.ACTIVE);
-        return activeAccounts.stream().map(account -> new AccountSummaryDTO(account.getId(),
-                account.getUser().getName(),
-                account.getUser().getSurname(),
-                account.getUser().getPhoneNumber(),
-                account.getUser().getPhotoUrl(),
-                account.getUser().getReferenceOffice().getName(),
-                account.getEmail(),
-                account.getAccountStatus())).toList();
-    }
+    public Page<AccountSummaryDTO> getActiveAccounts(Pageable pageable) {
+        Page<Account> activeAccounts = accountRepository.findByStatus(AccountStatus.ACTIVE, pageable);
 
+        return activeAccounts.map(account -> {
+            User user = account.getUser();
+
+
+            String name = (user != null) ? user.getName() : null;
+            String surname = (user != null) ? user.getSurname() : null;
+
+            String phoneNumber = (user != null) ? user.getPhoneNumber() : null;
+
+            String photoUrl = (user != null) ? user.getPhotoUrl() : null;
+
+            String officeName = (user != null && user.getReferenceOffice() != null)
+                    ? user.getReferenceOffice().getName()
+                    : "Nessuna sede assegnata";
+            return new AccountSummaryDTO(
+                    account.getId(),
+                    name,
+                    surname,
+                    phoneNumber,
+                    photoUrl,
+                    officeName,
+                    account.getEmail(),
+                    account.getStatus()
+            );
+
+        });
+    }
 
     //9. VISUALIZZA PROPRIO PROFILO /ME
     public CurrentAccountResponseDTO getMyProfile(Account currentAccount) {
-        Account account = accountRepository.findById(currentAccount.getId())
-                .orElseThrow(() -> new NotFoundException("L'account con id " + currentAccount.getId() + " non è stato trovato"));
+        Account myAccount = findById(currentAccount.getId());
+
+        User user = myAccount.getUser();
+
+        String name = (user != null) ? user.getName() : null;
+        String surname = (user != null) ? user.getSurname() : null;
+        LocalDate dateOfBirth = (user != null) ? user.getDateOfBirth() : null;
+        String placeOfBirth = (user != null) ? user.getPlaceOfBirth() : null;
+        String phoneNumber = (user != null) ? user.getPhoneNumber() : null;
+        String taxCode = (user != null) ? user.getTaxCode() : null;
+        String photoUrl = (user != null) ? user.getPhotoUrl() : null;
+        String streetAddress = (user != null) ? user.getStreetAddress() : null;
+        String houseNumber = (user != null) ? user.getHouseNumber() : null;
+        String zipCode = (user != null) ? user.getZipCode() : null;
+        String city = (user != null) ? user.getCity() : null;
+        String province = (user != null) ? user.getProvince() : null;
+        String iban = (user != null) ? user.getIban() : null;
+        String documentNumber = (user != null) ? user.getDocumentNumber() : null;
+        DocumentType documentType = (user != null) ? user.getDocumentType() : null;
+        LocalDate issueDate = (user != null) ? user.getIssueDate() : null;
+        LocalDate expirationDate = (user != null) ? user.getExpirationDate() : null;
+        String documentFrontUrl = (user != null) ? user.getDocumentFrontUrl() : null;
+        String documentBackUrl = (user != null) ? user.getDocumentBackUrl() : null;
+        String taxCodeCardFrontUrl = (user != null) ? user.getTaxCodeCardFrontUrl() : null;
+        String taxCodeCardBackUrl = (user != null) ? user.getTaxCodeCardBackUrl() : null;
+        String officeName = (user != null && user.getReferenceOffice() != null)
+                ? user.getReferenceOffice().getName()
+                : "Nessuna sede assegnata";
 
         return new CurrentAccountResponseDTO(
-                account.getId(),
-                account.getUser().getName(),
-                account.getUser().getSurname(),
-                account.getUser().getDateOfBirth(),
-                account.getUser().getPlaceOfBirth(),
-                account.getUser().getPhoneNumber(),
-                account.getUser().getTaxCode(),
-                account.getUser().getPhotoUrl(),
-                account.getUser().getStreetAddress(),
-                account.getUser().getHouseNumber(),
-                account.getUser().getZipCode(),
-                account.getUser().getCity(),
-                account.getUser().getProvince(),
-                account.getUser().getIban(),
-                account.getUser().getDocumentNumber(),
-                account.getUser().getDocumentType(),
-                account.getUser().getIssueDate(),
-                account.getUser().getExpirationDate(),
-                account.getUser().getDocumentFrontUrl(),
-                account.getUser().getDocumentBackUrl(),
-                account.getUser().getTaxCodeCardFrontUrl(),
-                account.getUser().getTaxCodeCardBackUrl(),
-                account.getUser().getReferenceOffice().getName(),
-                account.getEmail(),
-                account.getAccountStatus());
+                myAccount.getId(),
+                name,
+                surname,
+                dateOfBirth,
+                placeOfBirth,
+                phoneNumber,
+                taxCode,
+                photoUrl,
+                streetAddress,
+                houseNumber,
+                zipCode,
+                city,
+                province,
+                iban,
+                documentNumber,
+                documentType,
+                issueDate,
+                expirationDate,
+                documentFrontUrl,
+                documentBackUrl,
+                taxCodeCardFrontUrl,
+                taxCodeCardBackUrl,
+                officeName,
+                myAccount.getEmail(),
+                myAccount.getStatus()
+        );
     }
-
 }
+
+
+
 
 
 
