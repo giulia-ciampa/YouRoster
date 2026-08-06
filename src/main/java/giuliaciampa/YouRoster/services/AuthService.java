@@ -1,5 +1,6 @@
 package giuliaciampa.YouRoster.services;
 
+import com.cloudinary.Cloudinary;
 import giuliaciampa.YouRoster.dto.requests.LoginRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UpdateCredentialsRequestDTO;
 import giuliaciampa.YouRoster.dto.requests.UserRegistrationRequestDTO;
@@ -7,6 +8,7 @@ import giuliaciampa.YouRoster.dto.responses.LoginResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UpdateCredentialsResponseDTO;
 import giuliaciampa.YouRoster.dto.responses.UserRegistrationResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
+import giuliaciampa.YouRoster.entities.AccountStatus;
 import giuliaciampa.YouRoster.entities.RefreshToken;
 import giuliaciampa.YouRoster.entities.User;
 import giuliaciampa.YouRoster.exceptions.BadRequestException;
@@ -25,19 +27,19 @@ import java.util.UUID;
 public class AuthService {
     private final AccountService accountService;
     private final UserService userService;
-    private final RoleService roleService;
     private final PasswordEncoder bcrypt;
     private final JWTTools jwtTools;
     private final RefreshTokenService refreshTokenService;
 
-    public AuthService(AccountService accountService, UserService userService, RoleService roleService, PasswordEncoder bcrypt, JWTTools jwtTools, RefreshTokenService refreshTokenService) {
+
+    public AuthService(AccountService accountService, UserService userService, RoleService roleService, PasswordEncoder bcrypt, JWTTools jwtTools, RefreshTokenService refreshTokenService, Cloudinary cloudinary) {
         this.accountService = accountService;
         this.userService = userService;
-        this.roleService = roleService;
         this.bcrypt = bcrypt;
         this.jwtTools = jwtTools;
         this.refreshTokenService = refreshTokenService;
     }
+
 
     //METODO SALVA NUOVO ACCOUNT-REGISTER E CREA UNO USER
     @Transactional
@@ -71,11 +73,18 @@ public class AuthService {
             throw new ValidationException("Il formato del numero di documento non è valido per la nazionalità " + payload.nationality());
         }
 
-        // 4. Salva Account
-        Account savedAccount = accountService.saveAccount(correctEmail, payload.password(), null, false);
+        //UPLOAD DEI DOCUMENTI TRAMITE USER SERVICE
+        String documentFrontUrl = userService.uploadDocuments(payload.documentFront(), "Documento Fronte");
+        String documentBackUrl = userService.uploadDocuments(payload.documentBack(), "Documento Retro");
+        String taxCodeCardFrontUrl = userService.uploadDocuments(payload.taxCodeFront(), "Fronte codice fiscale");
+        String taxCodeCardBackUrl = userService.uploadDocuments(payload.taxCodeBack(), "Retro codice fiscale");
 
 
-        // 5. Crea e salva lo User associato
+        //4. Salva Account
+        Account savedAccount = accountService.saveAccount(correctEmail, payload.password(), null, AccountStatus.PENDING);
+
+
+        //6. Crea e salva lo User associato
         User user = new User();
         user.setName(payload.name());
         user.setSurname(payload.surname());
@@ -84,7 +93,7 @@ public class AuthService {
         user.setDateOfBirth(payload.dateOfBirth());
         user.setPlaceOfBirth(payload.placeOfBirth());
         user.setPhoneNumber(payload.phoneNumber());
-        user.setAddress(payload.streetAddress());
+        user.setStreetAddress(payload.streetAddress());
         user.setHouseNumber(payload.houseNumber());
         user.setZipCode(payload.zipCode());
         user.setCity(payload.city());
@@ -95,12 +104,18 @@ public class AuthService {
         user.setDocumentType(payload.documentType());
         user.setIssueDate(payload.issueDate());
         user.setExpirationDate(payload.expirationDate());
+        user.setDocumentFrontUrl(documentFrontUrl);
+        user.setDocumentBackUrl(documentBackUrl);
+        user.setTaxCodeCardFrontUrl(taxCodeCardFrontUrl);
+        user.setTaxCodeCardBackUrl(taxCodeCardBackUrl);
         user.setAccount(savedAccount);
+        savedAccount.setUser(user);
 
 
         User savedUser = userService.saveUser(user);
         // 6. Return DTO
         return new UserRegistrationResponseDTO(
+                savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getSurname(),
                 savedUser.getAccount().getEmail(),
@@ -120,9 +135,14 @@ public class AuthService {
             throw new UnauthorizedException("Credenziali non valide");
         }
 
-        //3. verifica se l'account è attivo, approvato dall'admin
-        if (!account.isActive()) {
-            throw new UnauthorizedException("Il tuo account è in attesa di approvazione da parte dell'admin");
+        //3. verifica lo stato dell'account
+        switch (account.getStatus()) {
+            case PENDING ->
+                    throw new UnauthorizedException("Il tuo account è ancora in attesa di approvazione da parte dell'amministratore.");
+            case DISABLED ->
+                    throw new UnauthorizedException("Il tuo account è stato disabilitato. Contatta l'amministratore per la riattivazione.");
+            case REJECTED -> throw new UnauthorizedException("La tua richiesta di registrazione è stata rifiutata.");
+            case ACTIVE -> { /* Procedi con il login */ }
         }
 
         //4. genera il token
@@ -186,12 +206,17 @@ public class AuthService {
     @Transactional
     public LoginResponseDTO refreshToken(String requestFreshToken) {
         //1. cerca il token nel db
-
         RefreshToken token = refreshTokenService.findByToken(requestFreshToken);
+
         //2. verifica che non sia scaduto
         refreshTokenService.verifyExpiration(token);
 
         Account account = token.getAccount();
+
+        //2b verifica che l'account sia ancora attivo
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new UnauthorizedException("L'account non è attivo o risulta disabilitato.");
+        }
 
         //3. genera un NUOVO access token
         String newAccessToken = jwtTools.generateToken(account);

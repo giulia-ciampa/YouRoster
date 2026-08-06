@@ -1,5 +1,6 @@
 package giuliaciampa.YouRoster.runners;
 
+import giuliaciampa.YouRoster.entities.AccountStatus;
 import giuliaciampa.YouRoster.services.AccountService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -22,7 +23,7 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        accountService.saveAdmin(email, password);
+        accountService.saveAdmin(email, password, AccountStatus.ACTIVE);
         System.out.println("inizializzazione admin completata");
     }
 }

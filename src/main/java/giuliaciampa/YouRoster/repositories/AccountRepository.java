@@ -1,6 +1,7 @@
 package giuliaciampa.YouRoster.repositories;
 
 import giuliaciampa.YouRoster.entities.Account;
+import giuliaciampa.YouRoster.entities.AccountStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,10 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     boolean existsByRoles_Name(String roleName);
 
-    Page<Account> findByIsActiveFalse(Pageable pageable);
+    Page<Account> findByRolesNameIgnoreCase(String roleName, Pageable pageable);
 
+    Page<Account> findByStatus(AccountStatus accountStatus, Pageable pageable);
+
+    Page<Account> findByRolesNameIgnoreCaseAndStatus(String roleName, AccountStatus status, Pageable pageable);
+    
 }

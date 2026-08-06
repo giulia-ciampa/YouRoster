@@ -9,12 +9,14 @@ import org.springframework.stereotype.Service;
 public class RoleService {
     private final RoleRepository roleRepository;
 
+
     public RoleService(RoleRepository roleRepository) {
         this.roleRepository = roleRepository;
+
     }
 
 
-    //METODO PER SALVARE I RUOLI SE NON ESISTONO GIA'
+    //1. METODO PER SALVARE I RUOLI SE NON ESISTONO GIA'
     public void saveRoles() {
         if (roleRepository.findByName("ADMIN").isEmpty()) {
             roleRepository.save(new Role("ADMIN"));
@@ -41,10 +43,16 @@ public class RoleService {
         if (roleRepository.findByName("STAFF").isEmpty()) {
             roleRepository.save(new Role("STAFF"));
         }
+
+        if (roleRepository.findByName("").isEmpty()) {
+            roleRepository.save(new Role(""));
+        }
     }
 
-    //METODO PER CERCARE UN RUOLO PER NOME, DA USARE PER ASSEGNARLO
+    //2. METODO PER CERCARE UN RUOLO PER NOME, DA USARE PER ASSEGNARLO
     public Role findRoleByName(String name) {
         return roleRepository.findByName(name).orElseThrow(() -> new NotFoundException("Il ruolo con il nome " + name + " non è stato trovato."));
     }
+
+
 }
