@@ -3,8 +3,6 @@ package giuliaciampa.YouRoster.controllers;
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
 import giuliaciampa.YouRoster.dto.responses.AccountSummaryDTO;
 import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
-import giuliaciampa.YouRoster.dto.responses.CurrentAccountResponseDTO;
-import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.services.AccountService;
 import giuliaciampa.YouRoster.services.AuthService;
 import org.springframework.data.domain.Page;
@@ -12,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -113,12 +110,6 @@ public class AccountController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
 
         return accountService.getActiveAccounts(pageable);
-    }
-
-    //9. VISUALIZZA IL TUO PROFILO
-    @GetMapping("/me")
-    public CurrentAccountResponseDTO getMyProfile(@AuthenticationPrincipal Account currentAccount) {
-        return accountService.getMyProfile(currentAccount);
     }
 
 

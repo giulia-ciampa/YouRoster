@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,19 +31,17 @@ public class AccountService {
     private final PasswordEncoder bcrypt;
     private final RoleService roleService;
     private final OfficeService officeService;
-    private final UserService userService;
     private final EmailService emailService;
 
     @Value("${login.url}")
     private String loginUrl;
 
 
-    public AccountService(AccountRepository accountRepository, PasswordEncoder bcrypt, RoleService roleService, OfficeService officeService, UserService userService, EmailService emailService) {
+    public AccountService(AccountRepository accountRepository, PasswordEncoder bcrypt, RoleService roleService, OfficeService officeService, EmailService emailService) {
         this.accountRepository = accountRepository;
         this.bcrypt = bcrypt;
         this.roleService = roleService;
         this.officeService = officeService;
-        this.userService = userService;
         this.emailService = emailService;
     }
 
@@ -127,6 +126,17 @@ public class AccountService {
         accountRepository.save(account);
     }
 
+    //RECUPERA EMAIL IN BASE AI RUOLI
+    public List<String> getEmailsByRoles(List<String> roleNames) {
+        List<Account> accounts = accountRepository.findByRoles_NameIn(roleNames);
+
+        return accounts.stream()
+                .map(Account::getEmail)
+                .filter(email -> email != null && !email.isBlank())
+                .distinct()
+                .toList();
+    }
+
     //-------------------------------------------------------------------------------------------------------
 
     // 1. TROVA GLI ACCOUNT IN ATTESA DI ESSERE ACCETTATI(PENDING)
@@ -195,16 +205,16 @@ public class AccountService {
 
         String officeName = (officeToAssign != null) ? officeToAssign.getName() : "Nessun ufficio/sede assegnata";
 
-        // 5. Attivazione e salvataggio account
-        account.setStatus(AccountStatus.ACTIVE);
-        account.setRoles(rolesToAssign);
-        accountRepository.save(account);
 
         // 6. Assegnazione Sede allo User
         if (user != null) {
             user.setReferenceOffice(officeToAssign);
-            userService.saveUser(user);
         }
+
+        // 5. Attivazione e salvataggio account
+        account.setStatus(AccountStatus.ACTIVE);
+        account.setRoles(rolesToAssign);
+        accountRepository.save(account);
 
         String roleNames = rolesToAssign.stream()
                 .map(Role::getName)
