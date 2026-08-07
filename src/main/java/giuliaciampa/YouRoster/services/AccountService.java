@@ -3,6 +3,7 @@ package giuliaciampa.YouRoster.services;
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
 import giuliaciampa.YouRoster.dto.responses.AccountSummaryDTO;
 import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
+import giuliaciampa.YouRoster.dto.responses.UserProfileResponseDTO;
 import giuliaciampa.YouRoster.emailTemplates.EmailTemplateBuilder;
 import giuliaciampa.YouRoster.entities.*;
 import giuliaciampa.YouRoster.exceptions.AlreadyExistsException;
@@ -413,7 +414,9 @@ public class AccountService {
     }
 
 
-    //4. CERCA UTENTE PER NOME (ADMIN, HR, PAYROLL)
+
+
+
 
 
 }

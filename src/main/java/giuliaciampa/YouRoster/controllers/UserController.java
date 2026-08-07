@@ -8,12 +8,14 @@ import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.UserService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -46,6 +48,14 @@ public class UserController {
         }
 
         return userService.updateProfile(currentAccount, payload);
+    }
+
+    //3. GET TUTTI GLI UTENTI E LE SUE INFORMAZIONI(ADMIN, HR, PAYROLL)
+
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN','HR','AP E PAYROLL SPECIALIST')")
+    public UserProfileResponseDTO getUserProfileForManagement(@PathVariable UUID userId) {
+        return userService.getUserProfileForManagement(userId);
     }
 
 }
