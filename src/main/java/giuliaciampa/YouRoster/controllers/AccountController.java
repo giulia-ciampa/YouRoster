@@ -101,13 +101,19 @@ public class AccountController {
     @GetMapping("/active")
     public Page<AccountSummaryDTO> getActiveAccounts(@RequestParam(defaultValue = "0") int page,
                                                      @RequestParam(defaultValue = "15") int size,
-                                                     @RequestParam(defaultValue = "user.surname") String sortBy) {
+                                                     @RequestParam(defaultValue = "user.surname") String sortBy,
+                                                     @RequestParam(required = false) String name,
+                                                     @RequestParam(required = false) String surname) {
 
         if (size <= 0) size = 10;
         if (size > 15) size = 15;
         if (page < 0) page = 0;
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+
+        if ((name != null && !name.isBlank()) || (surname != null && !surname.isBlank())) {
+            return accountService.searchActiveUsersByNameAndSurname(name, surname, pageable);
+        }
 
         return accountService.getActiveAccounts(pageable);
     }

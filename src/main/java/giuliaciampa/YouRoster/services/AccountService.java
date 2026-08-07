@@ -399,6 +399,23 @@ public class AccountService {
     }
 
 
+    //9. CERCA UTENTE PER NOME (TUTTI)
+    public Page<AccountSummaryDTO> searchActiveUsersByNameAndSurname(String name, String surname, Pageable pageable) {
+        Page<Account> activeAccounts = accountRepository
+                .findByUser_NameContainingIgnoreCaseAndUser_SurnameContainingIgnoreCaseAndStatus(
+                        name,
+                        surname,
+                        AccountStatus.ACTIVE,
+                        pageable
+                );
+
+        return activeAccounts.map(this::convertToAccountSummaryDTO);
+    }
+
+
+    //4. CERCA UTENTE PER NOME (ADMIN, HR, PAYROLL)
+
+
 }
 
 
