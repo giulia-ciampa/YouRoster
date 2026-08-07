@@ -1,17 +1,23 @@
 package giuliaciampa.YouRoster.controllers;
 
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
+import giuliaciampa.YouRoster.dto.requests.UpdateAccountRoleDTO;
 import giuliaciampa.YouRoster.dto.responses.AccountSummaryDTO;
-import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
+import giuliaciampa.YouRoster.dto.responses.MessageResponseDTO;
+import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.AccountService;
 import giuliaciampa.YouRoster.services.AuthService;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -40,7 +46,7 @@ public class AccountController {
     //2.APPROVA E ASSEGNA RUOLO + SEDE (ADMIN)
     @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{id}/accept")
-    public AdminApprovalResponseDTO approveAndassignRoles(@PathVariable UUID id, @RequestBody(required = false) AdminApprovalRequestDTO payload) {
+    public MessageResponseDTO approveAndassignRoles(@PathVariable UUID id, @RequestBody(required = false) AdminApprovalRequestDTO payload) {
         return accountService.approveAssignRolesAndOffice(id, payload);
     }
 
@@ -48,7 +54,7 @@ public class AccountController {
     //3. RIFIUTA E ELIMINA RICHIESTA (ADMIN)
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}/reject")
-    public AdminApprovalResponseDTO rejectAccount(@PathVariable UUID id) {
+    public MessageResponseDTO rejectAccount(@PathVariable UUID id) {
         return accountService.rejectAccount(id);
     }
 
@@ -56,7 +62,7 @@ public class AccountController {
     // 4. DISABILITA ACCOUNT (ADMIN)
     @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{accountId}/disable")
-    public AdminApprovalResponseDTO disableAccount(@PathVariable UUID accountId) {
+    public MessageResponseDTO disableAccount(@PathVariable UUID accountId) {
         return accountService.disableAccount(accountId);
     }
 
@@ -90,7 +96,7 @@ public class AccountController {
     //7. RIATTIVA ACCOUNT DISABILITATO
     @PatchMapping("/{accountId}/reactivate")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public AdminApprovalResponseDTO reactivateSuspendedAccount(
+    public MessageResponseDTO reactivateSuspendedAccount(
             @PathVariable UUID accountId,
             @RequestParam(required = false, defaultValue = "STAFF") String role
     ) {
@@ -118,5 +124,20 @@ public class AccountController {
         return accountService.getActiveAccounts(pageable);
     }
 
+    //9. AGGIORNA RUOLI ACCOUNT (ADMIN)
+    @PatchMapping("/{accountId}/roles")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public MessageResponseDTO updateAccountRole(@RequestBody @Validated UpdateAccountRoleDTO payload, @PathVariable UUID accountId, BindingResult validationResult) {
+
+        if (validationResult.hasErrors()) {
+            List<String> errorsList = validationResult.getFieldErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .toList();
+            throw new ValidationException(errorsList);
+        }
+
+        return accountService.updateAccountRole(payload, accountId);
+
+    }
 
 }

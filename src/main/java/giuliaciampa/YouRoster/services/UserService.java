@@ -13,6 +13,7 @@ import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.repositories.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +27,10 @@ public class UserService {
     private final Cloudinary cloudinary;
     private final EmailService emailService;
     private final AccountService accountService;
+
+
+    @Value("${profileUpdated.url}")
+    private String ProfileUpdated;
 
 
     public UserService(UserRepository userRepository, Cloudinary cloudinary, EmailService emailService, AccountService accountService) {
@@ -339,7 +344,7 @@ public class UserService {
                 String details = (ibanChanged && documentChanged) ? "l'IBAN e i documenti"
                         : ibanChanged ? "l'IBAN" : "i documenti";
 
-                String htmlBody = EmailTemplateBuilder.buildUpdateSensitiveData(employeeName, details);
+                String htmlBody = EmailTemplateBuilder.buildUpdateSensitiveData(employeeName, details, ProfileUpdated);
                 String subject = "[YouRoster] Modifica Dati Sensibili: " + employeeName;
 
                 for (String email : recipientEmails) {

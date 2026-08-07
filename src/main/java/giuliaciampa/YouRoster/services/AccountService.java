@@ -1,9 +1,9 @@
 package giuliaciampa.YouRoster.services;
 
 import giuliaciampa.YouRoster.dto.requests.AdminApprovalRequestDTO;
+import giuliaciampa.YouRoster.dto.requests.UpdateAccountRoleDTO;
 import giuliaciampa.YouRoster.dto.responses.AccountSummaryDTO;
-import giuliaciampa.YouRoster.dto.responses.AdminApprovalResponseDTO;
-import giuliaciampa.YouRoster.dto.responses.UserProfileResponseDTO;
+import giuliaciampa.YouRoster.dto.responses.MessageResponseDTO;
 import giuliaciampa.YouRoster.emailTemplates.EmailTemplateBuilder;
 import giuliaciampa.YouRoster.entities.*;
 import giuliaciampa.YouRoster.exceptions.AlreadyExistsException;
@@ -37,6 +37,8 @@ public class AccountService {
     @Value("${login.url}")
     private String loginUrl;
 
+    @Value("${roleUpdated.url}")
+    private String roleUpdated;
 
     public AccountService(AccountRepository accountRepository, PasswordEncoder bcrypt, RoleService roleService, OfficeService officeService, EmailService emailService) {
         this.accountRepository = accountRepository;
@@ -162,7 +164,7 @@ public class AccountService {
 
     // 2. APPROVA E ASSEGNA RUOLO + SEDE (ADMIN)
     @Transactional
-    public AdminApprovalResponseDTO approveAssignRolesAndOffice(UUID id, AdminApprovalRequestDTO payload) {
+    public MessageResponseDTO approveAssignRolesAndOffice(UUID id, AdminApprovalRequestDTO payload) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("L'account con id " + id + " non è stato trovato"));
 
@@ -238,21 +240,21 @@ public class AccountService {
 
         emailService.sendHtmlEmail(
                 account.getEmail(),
-                "Account Approvato - Benvenuto in YouRoster!",
+                "[Account Approvato - Benvenuto in YouRoster!]",
                 htmlBody
         );
 
         if (isCoordinator && officeToAssign != null) {
-            return new AdminApprovalResponseDTO("L'account dell'utente " + userName + " " + userSurname + " è stato attivato con successo con ruolo " + roleNames + " nella sede " + officeToAssign.getName(), LocalDateTime.now());
+            return new MessageResponseDTO("L'account dell'utente " + userName + " " + userSurname + " è stato attivato con successo con ruolo " + roleNames + " nella sede " + officeToAssign.getName(), LocalDateTime.now());
         }
 
-        return new AdminApprovalResponseDTO("L'account dell'utente " + userName + " " + userSurname + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
+        return new MessageResponseDTO("L'account dell'utente " + userName + " " + userSurname + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
     }
 
 
     // 3. RIFIUTA E ELIMINA RICHIESTA (ADMIN)
     @Transactional
-    public AdminApprovalResponseDTO rejectAccount(UUID id) {
+    public MessageResponseDTO rejectAccount(UUID id) {
         Account accountFound = findById(id);
 
         //1. Controllo di sicurezza: non si può rifiutare un account già attivo
@@ -268,7 +270,7 @@ public class AccountService {
         String htmlBody = EmailTemplateBuilder.buildAccountRejectionEmail(accountFound.getEmail());
         emailService.sendHtmlEmail(
                 accountFound.getEmail(),
-                "Esito Richiesta Registrazione - YouRoster",
+                "[Esito Richiesta Registrazione - YouRoster]",
                 htmlBody
         );
 
@@ -277,7 +279,7 @@ public class AccountService {
         accountRepository.delete(accountFound);
 
         // 4. Ritorna il DTO di risposta
-        return new AdminApprovalResponseDTO(
+        return new MessageResponseDTO(
                 "La richiesta di registrazione dell'utente " + userName + " " + userSurname + " è stata rifiutata e rimossa dal sistema.",
                 LocalDateTime.now()
         );
@@ -285,7 +287,7 @@ public class AccountService {
 
     // 4. DISABILITA ACCOUNT (ADMIN)
     @Transactional
-    public AdminApprovalResponseDTO disableAccount(UUID accountId) {
+    public MessageResponseDTO disableAccount(UUID accountId) {
         Account foundAccount = findById(accountId);
         User foundUser = foundAccount.getUser();
 
@@ -304,11 +306,11 @@ public class AccountService {
 
         emailService.sendHtmlEmail(
                 foundAccount.getEmail(),
-                "Disattivazione Account - YouRoster",
+                "[Disattivazione Account - YouRoster]",
                 htmlBody
         );
 
-        return new AdminApprovalResponseDTO("L'account appartenente a " + userName + " " + userSurname + " è stato disabilitato con successo", LocalDateTime.now());
+        return new MessageResponseDTO("L'account appartenente a " + userName + " " + userSurname + " è stato disabilitato con successo", LocalDateTime.now());
     }
 
     // 5. DATO UN RUOLO, TROVA GLI ACCOUNT CON QUEL RUOLO
@@ -325,7 +327,7 @@ public class AccountService {
 
     //7. RIATTIVA UN ACCOUNT DISABILITATO
     @Transactional
-    public AdminApprovalResponseDTO reactivateSuspendedAccount(UUID accountId, String roleName) {
+    public MessageResponseDTO reactivateSuspendedAccount(UUID accountId, String roleName) {
         Account account = findById(accountId);
         User user = account.getUser();
 
@@ -364,12 +366,12 @@ public class AccountService {
 
         emailService.sendHtmlEmail(
                 account.getEmail(),
-                "Account Riattivato - YouRoster",
+                "[Account Riattivato - YouRoster]",
                 htmlBody
         );
 
 
-        return new AdminApprovalResponseDTO(
+        return new MessageResponseDTO(
                 "L'account di " + userName + " " + userSurname + " è stato riattivato con successo con ruolo " + newRole.getName(),
                 LocalDateTime.now()
         );
@@ -413,10 +415,47 @@ public class AccountService {
         return activeAccounts.map(this::convertToAccountSummaryDTO);
     }
 
+    //AGGIORNA RUOLI (ADMIN)
+    @Transactional
+    public MessageResponseDTO updateAccountRole(UpdateAccountRoleDTO payload, UUID id) {
+        Account account = findById(id);
+        User user = account.getUser();
+
+        Set<Role> rolesToAssign = payload.roles().stream()
+                .map(roleService::findRoleByName)
+                .collect(Collectors.toSet());
+
+        account.setRoles(rolesToAssign);
+        accountRepository.save(account);
+
+        // Consione ruoli in stringa leggibile per l'email
+        String rolesString = rolesToAssign.stream()
+                .map(Role::getName)
+                .collect(Collectors.joining(", "));
+
+        // Gestione nel caso in cui l'utente associato non esista
+        String userName = (user != null) ? "Ciao " + user.getName() : "Gentile utente";
+        String recipientName = (user != null)
+                ? user.getName() + " " + user.getSurname()
+                : account.getEmail();
+
+        //invio email
+        String htmlBody = EmailTemplateBuilder.buildUpdateRole(
+                userName,
+                rolesString,
+                roleUpdated
+        );
+
+        emailService.sendHtmlEmail(
+                account.getEmail(),
+                "[Ruolo aggiornato - YouRoster]!",
+                htmlBody
+        );
 
 
+        return new MessageResponseDTO("I ruoli di " + recipientName + " sono stati aggiornati con successo", LocalDateTime.now());
 
-
+    }
 
 
 }

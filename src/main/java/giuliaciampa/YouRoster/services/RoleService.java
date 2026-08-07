@@ -5,6 +5,8 @@ import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.repositories.RoleRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class RoleService {
     private final RoleRepository roleRepository;
@@ -52,6 +54,13 @@ public class RoleService {
     //2. METODO PER CERCARE UN RUOLO PER NOME, DA USARE PER ASSEGNARLO
     public Role findRoleByName(String name) {
         return roleRepository.findByName(name).orElseThrow(() -> new NotFoundException("Il ruolo con il nome " + name + " non è stato trovato."));
+    }
+
+
+    //3 GET TUTTI I RUOLI
+
+    public List<Role> findAll() {
+        return roleRepository.findAll();
     }
 
 
