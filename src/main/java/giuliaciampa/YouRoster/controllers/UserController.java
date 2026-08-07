@@ -7,16 +7,13 @@ import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.UserService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -35,10 +32,10 @@ public class UserController {
     }
 
     //2. AGGIORNA PROFILO UTENTE LOGGATO
-    @PutMapping("/me")
+    @PutMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UserProfileResponseDTO updateMyProfile(
             @AuthenticationPrincipal Account currentAccount,
-            @RequestBody @Validated UpdateUserProfileDTO payload, BindingResult validationResult
+            @ModelAttribute @Validated UpdateUserProfileDTO payload, BindingResult validationResult
     ) {
 
         if (validationResult.hasErrors()) {
@@ -51,15 +48,4 @@ public class UserController {
         return userService.updateProfile(currentAccount, payload);
     }
 
-
-    // 3. POST /users/me/documents -> Upload singolo file (carta identità, CF, ecc.) su Cloudinary
-    @PostMapping(value = "/me/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, String> uploadDocument(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("documentName") String documentName
-    ) {
-        String url = userService.uploadDocuments(file, documentName);
-        return Map.of("url", url);
-    }
 }

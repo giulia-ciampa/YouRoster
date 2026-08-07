@@ -2,6 +2,7 @@ package giuliaciampa.YouRoster.dto.responses;
 
 import giuliaciampa.YouRoster.entities.AccountStatus;
 
+import java.util.Set;
 import java.util.UUID;
 
 public record AccountSummaryDTO(
@@ -12,6 +13,7 @@ public record AccountSummaryDTO(
         String photoUrl,
         String officeName,
         String email,
-        AccountStatus status
+        AccountStatus status,
+        Set<String> roleNames
 ) {
 }

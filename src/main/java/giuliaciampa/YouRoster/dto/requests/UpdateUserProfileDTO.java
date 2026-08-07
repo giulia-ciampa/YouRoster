@@ -4,12 +4,13 @@ import giuliaciampa.YouRoster.entities.DocumentType;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
 public record UpdateUserProfileDTO(
         String phoneNumber,
-        String photoUrl,
+        MultipartFile photoUrl,
         String streetAddress,
         String houseNumber,
         @Pattern(regexp = "^[0-9]{5}$", message = "Il CAP deve essere di 5 cifre")
@@ -21,9 +22,9 @@ public record UpdateUserProfileDTO(
         LocalDate issueDate,
         @Future(message = "Il documento è scaduto!")
         LocalDate expirationDate,
-        String documentFrontUrl,
-        String documentBackUrl,
-        String taxCodeCardFrontUrl,
-        String taxCodeCardBackUrl
+        MultipartFile documentFront,
+        MultipartFile documentBack,
+        MultipartFile taxCodeCardFront,
+        MultipartFile taxCodeCardBack
 ) {
 }

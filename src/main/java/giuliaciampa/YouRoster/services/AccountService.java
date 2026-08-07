@@ -50,8 +50,14 @@ public class AccountService {
     private AccountSummaryDTO convertToAccountSummaryDTO(Account account) {
         User user = account.getUser();
 
+        Set<String> roleNames = (account.getRoles() != null)
+                ? account.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet())
+                : Set.of();
+
         if (user == null) {
-            return new AccountSummaryDTO(account.getId(), "Utente di sistema", null, null, null, "Nessuna sede", account.getEmail(), account.getStatus());
+            return new AccountSummaryDTO(account.getId(), "Utente di sistema", null, null, null, "Nessuna sede", account.getEmail(), account.getStatus(), roleNames);
         }
 
         String officeName = (user.getReferenceOffice() != null) ? user.getReferenceOffice().getName() : "Nessuna sede";
@@ -64,7 +70,8 @@ public class AccountService {
                 user.getPhotoUrl(),
                 officeName,
                 account.getEmail(),
-                account.getStatus()
+                account.getStatus(),
+                roleNames
         );
     }
 
@@ -386,16 +393,7 @@ public class AccountService {
             String officeName = (user != null && user.getReferenceOffice() != null)
                     ? user.getReferenceOffice().getName()
                     : "Nessuna sede assegnata";
-            return new AccountSummaryDTO(
-                    account.getId(),
-                    name,
-                    surname,
-                    phoneNumber,
-                    photoUrl,
-                    officeName,
-                    account.getEmail(),
-                    account.getStatus()
-            );
+            return convertToAccountSummaryDTO(account);
 
         });
     }
