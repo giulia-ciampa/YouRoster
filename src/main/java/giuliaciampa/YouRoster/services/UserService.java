@@ -354,10 +354,16 @@ public class UserService {
         return mapToDTO(updatedUser, currentAccount);
     }
 
-    //3. CERCA UTENTE PER NOME (TUTTI)
-
-
-    //4. CERCA UTENTE PER NOME (ADMIN, HR, PAYROLL)
+    //3. GET TUTTI GLI UTENTI E LE SUE INFORMAZIONI(ADMIN, HR, PAYROLL)
+    @Transactional
+    public UserProfileResponseDTO getUserProfileForManagement(UUID userId) {
+        User user = userRepository.findByIdWithOffice(userId).orElseThrow(() -> new NotFoundException("L'utente con id " + userId + " non è stato trovato."));
+        Account account = user.getAccount();
+        if (account == null) {
+            throw new NotFoundException("Nessun account associato all'utente con id " + userId);
+        }
+        return mapToDTO(user, account);
+    }
 
 
 }
