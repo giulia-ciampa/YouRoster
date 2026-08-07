@@ -2,7 +2,7 @@ package giuliaciampa.YouRoster.dto.responses;
 
 import java.time.LocalDateTime;
 
-public record AdminApprovalResponseDTO(
+public record MessageResponseDTO(
         String message,
         LocalDateTime timestamp
 ) {
