@@ -1,11 +1,16 @@
 package giuliaciampa.YouRoster.services;
 
+import giuliaciampa.YouRoster.dto.requests.OfficeDTO;
+import giuliaciampa.YouRoster.dto.requests.UpdateOfficeDTO;
 import giuliaciampa.YouRoster.entities.Office;
+import giuliaciampa.YouRoster.entities.OfficeStatus;
+import giuliaciampa.YouRoster.exceptions.BadRequestException;
 import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.repositories.OfficeRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -18,7 +23,7 @@ public class OfficeService {
     }
 
     //CREA SEDI DI DEFAULT
-    public void createDefaultOffices(String name, String address, LocalTime openingTime, LocalTime closingTime) {
+    public void createDefaultOffices(String name, String street, String houseNumber, String zipCode, String city, String province, LocalTime openingTime, LocalTime closingTime) {
         //1. controllo che la sede non esiste già
 
         if (officeRepository.existsByName(name)) {
@@ -27,10 +32,15 @@ public class OfficeService {
 
         //2. creo la sede
         Office newOffice = new Office();
-        newOffice.setAddress(address);
         newOffice.setName(name);
+        newOffice.setStreet(street);
+        newOffice.setHouseNumber(houseNumber);
+        newOffice.setZipCode(zipCode);
+        newOffice.setCity(city);
+        newOffice.setProvince(province);
         newOffice.setOpeningTime(openingTime);
         newOffice.setClosingTime(closingTime);
+
 
         officeRepository.save(newOffice);
     }
@@ -39,4 +49,85 @@ public class OfficeService {
     public Office findById(UUID id) {
         return officeRepository.findById(id).orElseThrow(() -> new NotFoundException("L'ufficio con id " + id + " non è stato trovato"));
     }
+
+    //---------------------------------------------------------------------
+
+    //1. CREA NUOVA SEDE
+
+    public Office saveNewOffice(OfficeDTO payload) {
+
+        Office newOffice = new Office();
+
+
+        newOffice.setName(payload.name());
+        newOffice.setStreet(payload.street());
+        newOffice.setHouseNumber(payload.houseNumber());
+        newOffice.setZipCode(payload.zipCode());
+        newOffice.setCity(payload.city());
+        newOffice.setProvince(payload.province());
+        newOffice.setOpeningTime(payload.openingTime());
+        newOffice.setClosingTime(payload.closingTime());
+
+        return officeRepository.save(newOffice);
+    }
+
+    //2. MODIFICA NOME SEDE
+    public Office updateOffice(UUID id, UpdateOfficeDTO payload) {
+        Office existingOffice = findById(id);
+
+        if (payload.name() != null && !payload.name().isBlank()) {
+            existingOffice.setName(payload.name());
+        }
+        if (payload.street() != null && !payload.street().isBlank()) {
+            existingOffice.setStreet(payload.street());
+        }
+        if (payload.houseNumber() != null && !payload.houseNumber().isBlank()) {
+            existingOffice.setHouseNumber(payload.houseNumber());
+        }
+        if (payload.zipCode() != null && !payload.zipCode().isBlank()) {
+            existingOffice.setZipCode(payload.zipCode());
+        }
+        if (payload.city() != null && !payload.city().isBlank()) {
+            existingOffice.setCity(payload.city());
+        }
+        if (payload.province() != null && !payload.province().isBlank()) {
+            existingOffice.setProvince(payload.province());
+        }
+
+        //controllo sugli orari
+        LocalTime opening = payload.openingTime() != null ? payload.openingTime() : existingOffice.getOpeningTime();
+        LocalTime closing = payload.closingTime() != null ? payload.closingTime() : existingOffice.getClosingTime();
+
+        if (opening.isAfter(closing) || opening.equals(closing)) {
+            throw new BadRequestException("L'orario di apertura deve essere precedente all'orario di chiusura");
+        }
+
+        if (payload.openingTime() != null) {
+            existingOffice.setOpeningTime(payload.openingTime());
+        }
+        if (payload.closingTime() != null) {
+            existingOffice.setClosingTime(payload.closingTime());
+        }
+
+        //controllo status
+        if (payload.status() != null) {
+            existingOffice.setStatus(payload.status());
+        }
+
+        return officeRepository.save(existingOffice);
+    }
+
+    //3. GET ALL OFFICES BY STATUS E IN ORDINE ALFABETICO
+    public List<Office> getAllOfficesByStatus(OfficeStatus status) {
+        if (status != null) {
+            return officeRepository.findByStatusOrderByNameAsc(status);
+        }
+        return officeRepository.findAllByOrderByNameAsc();
+    }
+
+    //4. GET ACTIVE OFFICES
+    public List<Office> getActiveOffice() {
+        return officeRepository.findByStatus(OfficeStatus.ACTIVE);
+    }
+
 }

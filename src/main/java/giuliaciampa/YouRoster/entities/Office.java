@@ -20,7 +20,19 @@ public class Office {
     private String name;
 
     @Column(nullable = false, length = 40)
-    private String address;
+    private String street;
+
+    @Column(name = "house_number", nullable = false, length = 10)
+    private String houseNumber;
+
+    @Column(name = "zip_code", nullable = false, length = 5)
+    private String zipCode;
+
+    @Column(nullable = false, length = 20)
+    private String city;
+
+    @Column(nullable = false, length = 2)
+    private String province;
 
     @Column(name = "opening_time", nullable = false)
     private LocalTime openingTime;
@@ -28,10 +40,18 @@ public class Office {
     @Column(name = "closing_time", nullable = false)
     private LocalTime closingTime;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "office_status", nullable = false)
+    private OfficeStatus status = OfficeStatus.ACTIVE;
+
     //COSTRUTTORE
-    public Office(String name, String address, LocalTime openingTime, LocalTime closingTime) {
+    public Office(String name, String street, String houseNumber, String zipCode, String city, String province, LocalTime openingTime, LocalTime closingTime) {
         this.name = name;
-        this.address = address;
+        this.street = street;
+        this.houseNumber = houseNumber;
+        this.zipCode = zipCode;
+        this.city = city;
+        this.province = province;
         this.openingTime = openingTime;
         this.closingTime = closingTime;
     }
@@ -56,12 +76,12 @@ public class Office {
         this.name = name;
     }
 
-    public String getAddress() {
-        return address;
+    public String getStreet() {
+        return street;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setStreet(String street) {
+        this.street = street;
     }
 
     public LocalTime getOpeningTime() {
@@ -80,15 +100,60 @@ public class Office {
         this.closingTime = closingTime;
     }
 
+    public OfficeStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OfficeStatus status) {
+        this.status = status;
+    }
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getHouseNumber() {
+        return houseNumber;
+    }
+
+    public void setHouseNumber(String houseNumber) {
+        this.houseNumber = houseNumber;
+    }
+
     //TO STRING
     @Override
     public String toString() {
         return "Office{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", address='" + address + '\'' +
+                ", street='" + street + '\'' +
+                ", houseNumber='" + houseNumber + '\'' +
+                ", zipCode='" + zipCode + '\'' +
+                ", city='" + city + '\'' +
+                ", province='" + province + '\'' +
                 ", openingTime=" + openingTime +
                 ", closingTime=" + closingTime +
+                ", status=" + status +
                 '}';
     }
 }
