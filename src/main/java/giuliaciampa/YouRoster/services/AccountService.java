@@ -402,7 +402,7 @@ public class AccountService {
     }
 
 
-    //9. CERCA UTENTE PER NOME (TUTTI)
+    //9. CERCA UTENTE ATTIVO PER NOME (TUTTI)
     public Page<AccountSummaryDTO> searchActiveUsersByNameAndSurname(String name, String surname, Pageable pageable) {
         Page<Account> activeAccounts = accountRepository
                 .findByUser_NameContainingIgnoreCaseAndUser_SurnameContainingIgnoreCaseAndStatus(
@@ -415,7 +415,7 @@ public class AccountService {
         return activeAccounts.map(this::convertToAccountSummaryDTO);
     }
 
-    //AGGIORNA RUOLI (ADMIN)
+    //10. AGGIORNA RUOLI (ADMIN)
     @Transactional
     public MessageResponseDTO updateAccountRole(UpdateAccountRoleDTO payload, UUID id) {
         Account account = findById(id);
@@ -457,6 +457,11 @@ public class AccountService {
 
     }
 
+    //11. TROVA COORDINATORI TRAMITE UFFICIO ASSEGNATO
+    public Page<AccountSummaryDTO> getCoordinatorsByOffice(UUID officeId, Pageable pageable) {
+        Page<Account> accounts = accountRepository.findCoordinatorsByOffice(AccountStatus.ACTIVE, "COORDINATOR", officeId, pageable);
+        return accounts.map(this::convertToAccountSummaryDTO);
+    }
 
 }
 

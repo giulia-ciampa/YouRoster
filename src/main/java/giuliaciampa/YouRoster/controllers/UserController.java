@@ -34,7 +34,7 @@ public class UserController {
     }
 
     //2. AGGIORNA PROFILO UTENTE LOGGATO
-    @PutMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UserProfileResponseDTO updateMyProfile(
             @AuthenticationPrincipal Account currentAccount,
             @ModelAttribute @Validated UpdateUserProfileDTO payload, BindingResult validationResult
