@@ -3,6 +3,7 @@ package giuliaciampa.YouRoster.entities;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -40,12 +41,18 @@ public class Office {
     @Column(name = "closing_time", nullable = false)
     private LocalTime closingTime;
 
+    @Column(precision = 10, scale = 8)
+    private BigDecimal latitude;
+
+    @Column(precision = 11, scale = 8)
+    private BigDecimal longitude;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "office_status", nullable = false)
     private OfficeStatus status = OfficeStatus.ACTIVE;
 
     //COSTRUTTORE
-    public Office(String name, String street, String houseNumber, String zipCode, String city, String province, LocalTime openingTime, LocalTime closingTime) {
+    public Office(String name, String street, String houseNumber, String zipCode, String city, String province, LocalTime openingTime, LocalTime closingTime, BigDecimal latitude, BigDecimal longitude) {
         this.name = name;
         this.street = street;
         this.houseNumber = houseNumber;
@@ -54,6 +61,8 @@ public class Office {
         this.province = province;
         this.openingTime = openingTime;
         this.closingTime = closingTime;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     //COSTRUTTORE VUOTO
@@ -62,8 +71,6 @@ public class Office {
     }
 
     //GETTER E SETTER
-
-
     public UUID getId() {
         return id;
     }
@@ -140,20 +147,38 @@ public class Office {
         this.houseNumber = houseNumber;
     }
 
+    public BigDecimal getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(BigDecimal latitude) {
+        this.latitude = latitude;
+    }
+
+    public BigDecimal getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(BigDecimal longitude) {
+        this.longitude = longitude;
+    }
+
     //TO STRING
     @Override
     public String toString() {
         return "Office{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", street='" + street + '\'' +
-                ", houseNumber='" + houseNumber + '\'' +
-                ", zipCode='" + zipCode + '\'' +
-                ", city='" + city + '\'' +
-                ", province='" + province + '\'' +
-                ", openingTime=" + openingTime +
-                ", closingTime=" + closingTime +
-                ", status=" + status +
+                "id=" + getId() +
+                ", name='" + getName() + '\'' +
+                ", street='" + getStreet() + '\'' +
+                ", houseNumber='" + getHouseNumber() + '\'' +
+                ", zipCode='" + getZipCode() + '\'' +
+                ", city='" + getCity() + '\'' +
+                ", province='" + getProvince() + '\'' +
+                ", openingTime=" + getOpeningTime() +
+                ", closingTime=" + getClosingTime() +
+                ", latitude=" + getLatitude() +
+                ", longitude=" + getLongitude() +
+                ", status=" + getStatus() +
                 '}';
     }
 }

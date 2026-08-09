@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 
 public record OfficeDTO(
@@ -30,6 +31,13 @@ public record OfficeDTO(
         LocalTime openingTime,
 
         @NotNull(message = "L'orario di chiusura è obbligatorio")
-        LocalTime closingTime
+        LocalTime closingTime,
+
+        @NotNull(message = "La latitudine è obbligatoria")
+        BigDecimal latitude,
+
+        @NotNull(message = "La latitudine è obbligatoria")
+        BigDecimal longitude
+
 ) {
 }

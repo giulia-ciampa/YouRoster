@@ -140,4 +140,20 @@ public class AccountController {
 
     }
 
+    @GetMapping("/coordinators")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'HR', 'MANAGER', 'AP E PAYROLL SPECIALIST')")
+    public Page<AccountSummaryDTO> getCoordinatorsByOffice(@RequestParam UUID officeId,
+                                                           @RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "15") int size,
+                                                           @RequestParam(defaultValue = "user.surname") String sortBy) {
+        {
+            if (size <= 0) size = 15;
+            if (page < 0) page = 0;
+
+            Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+            return accountService.getCoordinatorsByOffice(officeId, pageable);
+        }
+    }
+
+
 }

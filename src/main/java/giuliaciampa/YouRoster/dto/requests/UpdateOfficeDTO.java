@@ -2,6 +2,7 @@ package giuliaciampa.YouRoster.dto.requests;
 
 import giuliaciampa.YouRoster.entities.OfficeStatus;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 
 public record UpdateOfficeDTO(String name,
@@ -12,5 +13,7 @@ public record UpdateOfficeDTO(String name,
                               String province,
                               LocalTime openingTime,
                               LocalTime closingTime,
-                              OfficeStatus status) {
+                              OfficeStatus status,
+                              BigDecimal latitude,
+                              BigDecimal longitude) {
 }

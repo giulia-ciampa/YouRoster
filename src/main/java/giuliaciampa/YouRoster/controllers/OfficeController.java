@@ -2,6 +2,7 @@ package giuliaciampa.YouRoster.controllers;
 
 import giuliaciampa.YouRoster.dto.requests.OfficeDTO;
 import giuliaciampa.YouRoster.dto.requests.UpdateOfficeDTO;
+import giuliaciampa.YouRoster.dto.responses.OfficeResponseDTO;
 import giuliaciampa.YouRoster.entities.Office;
 import giuliaciampa.YouRoster.entities.OfficeStatus;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
@@ -56,15 +57,29 @@ public class OfficeController {
     //3. GET ALL OFFICES BY STATUS
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'HR', 'AP E PAYROLL SPECIALIST', 'SHIFT MANAGER', 'MANAGER')")
-    public List<Office> getOfficesByStatus(@RequestParam(required = false) OfficeStatus status) {
+    public List<OfficeResponseDTO> getOfficesByStatus(@RequestParam(required = false) OfficeStatus status) {
         return officeService.getAllOfficesByStatus(status);
 
     }
 
     //4. GET ACTIVE OFFICES
     @GetMapping("/active")
-    public List<Office> getActiveOffice() {
+    public List<OfficeResponseDTO> getActiveOffice() {
         return officeService.getActiveOffice();
+    }
+
+    //5. GET OFFICE BY NAME
+    @GetMapping("/management/search")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'HR', 'MANAGER', 'AP E PAYROLL SPECIALIST')")
+    public OfficeResponseDTO getOfficeByNameAdmin(@RequestParam String name) {
+        return officeService.getOfficeByName(name);
+    }
+
+
+    //6. GET ACTIVE OFFICE BY NAME
+    @GetMapping("/search")
+    public OfficeResponseDTO getActiveOfficeByName(@RequestParam String name) {
+        return officeService.getActiveOfficeByName(name);
     }
 
 }

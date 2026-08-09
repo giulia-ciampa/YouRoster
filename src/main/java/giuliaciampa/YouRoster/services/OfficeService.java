@@ -2,6 +2,7 @@ package giuliaciampa.YouRoster.services;
 
 import giuliaciampa.YouRoster.dto.requests.OfficeDTO;
 import giuliaciampa.YouRoster.dto.requests.UpdateOfficeDTO;
+import giuliaciampa.YouRoster.dto.responses.OfficeResponseDTO;
 import giuliaciampa.YouRoster.entities.Office;
 import giuliaciampa.YouRoster.entities.OfficeStatus;
 import giuliaciampa.YouRoster.exceptions.BadRequestException;
@@ -9,6 +10,7 @@ import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.repositories.OfficeRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +25,7 @@ public class OfficeService {
     }
 
     //CREA SEDI DI DEFAULT
-    public void createDefaultOffices(String name, String street, String houseNumber, String zipCode, String city, String province, LocalTime openingTime, LocalTime closingTime) {
+    public void createDefaultOffices(String name, String street, String houseNumber, String zipCode, String city, String province, LocalTime openingTime, LocalTime closingTime, BigDecimal latitude, BigDecimal longitude) {
         //1. controllo che la sede non esiste già
 
         if (officeRepository.existsByName(name)) {
@@ -40,6 +42,8 @@ public class OfficeService {
         newOffice.setProvince(province);
         newOffice.setOpeningTime(openingTime);
         newOffice.setClosingTime(closingTime);
+        newOffice.setLongitude(longitude);
+        newOffice.setLatitude(latitude);
 
 
         officeRepository.save(newOffice);
@@ -67,11 +71,13 @@ public class OfficeService {
         newOffice.setProvince(payload.province());
         newOffice.setOpeningTime(payload.openingTime());
         newOffice.setClosingTime(payload.closingTime());
+        newOffice.setLatitude(payload.latitude());
+        newOffice.setLongitude(payload.longitude());
 
         return officeRepository.save(newOffice);
     }
 
-    //2. MODIFICA NOME SEDE
+    //2. MODIFICA SEDE
     public Office updateOffice(UUID id, UpdateOfficeDTO payload) {
         Office existingOffice = findById(id);
 
@@ -114,20 +120,100 @@ public class OfficeService {
             existingOffice.setStatus(payload.status());
         }
 
+        //controllo latitudine e longitudine
+        if (payload.latitude() != null) {
+            existingOffice.setLatitude(payload.latitude());
+        }
+
+        if (payload.longitude() != null) {
+            existingOffice.setLongitude(payload.longitude());
+        }
+
         return officeRepository.save(existingOffice);
     }
 
     //3. GET ALL OFFICES BY STATUS E IN ORDINE ALFABETICO
-    public List<Office> getAllOfficesByStatus(OfficeStatus status) {
+    public List<OfficeResponseDTO> getAllOfficesByStatus(OfficeStatus status) {
+        List<Office> offices;
         if (status != null) {
-            return officeRepository.findByStatusOrderByNameAsc(status);
+            offices = officeRepository.findByStatusOrderByNameAsc(status);
+        } else {
+            offices = officeRepository.findAllByOrderByNameAsc();
         }
-        return officeRepository.findAllByOrderByNameAsc();
+
+        return offices.stream()
+                .map(office -> new OfficeResponseDTO(
+                        office.getName(),
+                        office.getStreet(),
+                        office.getHouseNumber(),
+                        office.getZipCode(),
+                        office.getCity(),
+                        office.getProvince(),
+                        office.getOpeningTime(),
+                        office.getClosingTime(),
+                        office.getStatus(),
+                        office.getLatitude(),
+                        office.getLongitude())).toList();
     }
 
     //4. GET ACTIVE OFFICES
-    public List<Office> getActiveOffice() {
-        return officeRepository.findByStatus(OfficeStatus.ACTIVE);
+    public List<OfficeResponseDTO> getActiveOffice() {
+        List<Office> offices = officeRepository.findByStatus(OfficeStatus.ACTIVE);
+
+        return offices.stream()
+                .map(office -> new OfficeResponseDTO(
+                        office.getName(),
+                        office.getStreet(),
+                        office.getHouseNumber(),
+                        office.getZipCode(),
+                        office.getCity(),
+                        office.getProvince(),
+                        office.getOpeningTime(),
+                        office.getClosingTime(),
+                        office.getStatus(),
+                        office.getLatitude(),
+                        office.getLongitude()
+                ))
+                .toList();
+    }
+
+    //5. TROVA SEDE PER NOME - TUTTE LE SEDI(ADMIN, MANAGER, HR, PAYROLL)
+    public OfficeResponseDTO getOfficeByName(String name) {
+        Office office = officeRepository.findByNameIgnoreCase(name)
+                .orElseThrow(() -> new NotFoundException("L'ufficio con nome '" + name + "' non è stato trovato"));
+
+        return new OfficeResponseDTO(
+                office.getName(),
+                office.getStreet(),
+                office.getHouseNumber(),
+                office.getZipCode(),
+                office.getCity(),
+                office.getProvince(),
+                office.getOpeningTime(),
+                office.getClosingTime(),
+                office.getStatus(),
+                office.getLatitude(),
+                office.getLongitude()
+        );
+    }
+
+    public OfficeResponseDTO getActiveOfficeByName(String name) {
+        Office office = officeRepository.findByNameIgnoreCaseAndStatus(name, OfficeStatus.ACTIVE)
+                .orElseThrow(() -> new NotFoundException("Sede attiva '" + name + "' non trovata."));
+
+        return new OfficeResponseDTO(
+                office.getName(),
+                office.getStreet(),
+                office.getHouseNumber(),
+                office.getZipCode(),
+                office.getCity(),
+                office.getProvince(),
+                office.getOpeningTime(),
+                office.getClosingTime(),
+                office.getStatus(),
+                office.getLatitude(),
+                office.getLongitude()
+        );
     }
 
 }
