@@ -27,7 +27,7 @@ public class Shift {
     private boolean isActive;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "office_id", nullable = false)
     private Office office;
 
     //COSTRUTTORE
