@@ -55,7 +55,7 @@ public class Account implements UserDetails {
     public Account(String email, String password) {
         this.email = email;
         this.password = password;
-        this.status = AccountStatus.PENDING;
+
     }
 
     //COSTRUTTORE VUOTO
