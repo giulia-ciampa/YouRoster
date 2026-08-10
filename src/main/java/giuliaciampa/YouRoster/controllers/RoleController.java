@@ -1,6 +1,6 @@
 package giuliaciampa.YouRoster.controllers;
 
-import giuliaciampa.YouRoster.entities.Role;
+import giuliaciampa.YouRoster.dto.responses.RoleResponseDTO;
 import giuliaciampa.YouRoster.services.RoleService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +22,7 @@ public class RoleController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'HR')")
-    public List<Role> getAllRoles() {
+    public List<RoleResponseDTO> getAllRoles() {
         return roleService.findAll();
     }
 }

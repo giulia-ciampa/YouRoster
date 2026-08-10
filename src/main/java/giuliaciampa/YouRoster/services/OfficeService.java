@@ -54,14 +54,18 @@ public class OfficeService {
         return officeRepository.findById(id).orElseThrow(() -> new NotFoundException("L'ufficio con id " + id + " non è stato trovato"));
     }
 
+    //FIND BY NAME
+    public Office findByName(String name) {
+        return officeRepository.findByNameIgnoreCase(name).orElseThrow(() -> new NotFoundException("L'ufficio con il nome " + name + " non esiste."));
+    }
+
     //---------------------------------------------------------------------
 
     //1. CREA NUOVA SEDE
 
-    public Office saveNewOffice(OfficeDTO payload) {
+    public OfficeResponseDTO saveNewOffice(OfficeDTO payload) {
 
         Office newOffice = new Office();
-
 
         newOffice.setName(payload.name());
         newOffice.setStreet(payload.street());
@@ -74,11 +78,13 @@ public class OfficeService {
         newOffice.setLatitude(payload.latitude());
         newOffice.setLongitude(payload.longitude());
 
-        return officeRepository.save(newOffice);
+        Office savedOffice = officeRepository.save(newOffice);
+
+        return new OfficeResponseDTO(savedOffice.getId(), savedOffice.getName(), savedOffice.getStreet(), savedOffice.getHouseNumber(), savedOffice.getZipCode(), savedOffice.getCity(), savedOffice.getProvince(), savedOffice.getOpeningTime(), savedOffice.getClosingTime(), savedOffice.getStatus(), savedOffice.getLatitude(), savedOffice.getLongitude());
     }
 
     //2. MODIFICA SEDE
-    public Office updateOffice(UUID id, UpdateOfficeDTO payload) {
+    public OfficeResponseDTO updateOffice(UUID id, UpdateOfficeDTO payload) {
         Office existingOffice = findById(id);
 
         if (payload.name() != null && !payload.name().isBlank()) {
@@ -129,7 +135,9 @@ public class OfficeService {
             existingOffice.setLongitude(payload.longitude());
         }
 
-        return officeRepository.save(existingOffice);
+        Office officeSaved = officeRepository.save(existingOffice);
+
+        return new OfficeResponseDTO(officeSaved.getId(), officeSaved.getName(), officeSaved.getStreet(), officeSaved.getHouseNumber(), officeSaved.getZipCode(), officeSaved.getCity(), officeSaved.getProvince(), officeSaved.getOpeningTime(), officeSaved.getClosingTime(), officeSaved.getStatus(), officeSaved.getLatitude(), officeSaved.getLongitude());
     }
 
     //3. GET ALL OFFICES BY STATUS E IN ORDINE ALFABETICO
@@ -143,6 +151,7 @@ public class OfficeService {
 
         return offices.stream()
                 .map(office -> new OfficeResponseDTO(
+                        office.getId(),
                         office.getName(),
                         office.getStreet(),
                         office.getHouseNumber(),
@@ -162,6 +171,7 @@ public class OfficeService {
 
         return offices.stream()
                 .map(office -> new OfficeResponseDTO(
+                        office.getId(),
                         office.getName(),
                         office.getStreet(),
                         office.getHouseNumber(),
@@ -183,6 +193,7 @@ public class OfficeService {
                 .orElseThrow(() -> new NotFoundException("L'ufficio con nome '" + name + "' non è stato trovato"));
 
         return new OfficeResponseDTO(
+                office.getId(),
                 office.getName(),
                 office.getStreet(),
                 office.getHouseNumber(),
@@ -202,6 +213,7 @@ public class OfficeService {
                 .orElseThrow(() -> new NotFoundException("Sede attiva '" + name + "' non trovata."));
 
         return new OfficeResponseDTO(
+                office.getId(),
                 office.getName(),
                 office.getStreet(),
                 office.getHouseNumber(),

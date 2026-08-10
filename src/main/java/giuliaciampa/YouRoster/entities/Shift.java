@@ -14,29 +14,25 @@ public class Shift {
     @Column(name = "shift_id")
     private UUID id;
 
+    @ManyToOne
+    @JoinColumn(name = "office_id")
+    private Office office;
+
     @Column(name = "start_time")
     private LocalTime startTime;
 
     @Column(name = "end_time")
     private LocalTime endTime;
 
-    @Column(name = "is_rest")
-    private boolean isRest;
-
     @Column(name = "is_active")
-    private boolean isActive;
+    private boolean isActive = true;
 
-    @ManyToOne
-    @JoinColumn(name = "office_id", nullable = false)
-    private Office office;
 
     //COSTRUTTORE
-    public Shift(LocalTime startTime, LocalTime endTime, boolean isRest, Office office) {
+    public Shift(Office office, LocalTime startTime, LocalTime endTime) {
+        this.office = office;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.isRest = isRest;
-        this.isActive = true;
-        this.office = office;
     }
 
     //COSTRUTTORE VUOTO
@@ -44,6 +40,9 @@ public class Shift {
     }
 
     //GETTER E SETTER
+    public UUID getId() {
+        return id;
+    }
 
     public LocalTime getStartTime() {
         return startTime;
@@ -59,14 +58,6 @@ public class Shift {
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
-    }
-
-    public boolean isRest() {
-        return isRest;
-    }
-
-    public void setRest(boolean rest) {
-        isRest = rest;
     }
 
     public boolean isActive() {
@@ -94,7 +85,6 @@ public class Shift {
                 "id=" + id +
                 ", startTime=" + getStartTime() +
                 ", endTime=" + getEndTime() +
-                ", isRest=" + isRest() +
                 ", isActive=" + isActive() +
                 ", office=" + getOffice() +
                 '}';

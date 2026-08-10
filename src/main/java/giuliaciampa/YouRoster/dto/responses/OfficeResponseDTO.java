@@ -4,8 +4,10 @@ import giuliaciampa.YouRoster.entities.OfficeStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public record OfficeResponseDTO(
+        UUID id,
         String name,
         String street,
         String houseNumber,
