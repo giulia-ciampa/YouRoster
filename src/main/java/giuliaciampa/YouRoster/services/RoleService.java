@@ -1,5 +1,6 @@
 package giuliaciampa.YouRoster.services;
 
+import giuliaciampa.YouRoster.dto.responses.RoleResponseDTO;
 import giuliaciampa.YouRoster.entities.Role;
 import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.repositories.RoleRepository;
@@ -58,9 +59,10 @@ public class RoleService {
 
 
     //3 GET TUTTI I RUOLI
+    public List<RoleResponseDTO> findAll() {
 
-    public List<Role> findAll() {
-        return roleRepository.findAll();
+        List<Role> allRoles = roleRepository.findAll();
+        return allRoles.stream().map(role -> new RoleResponseDTO(role.getId(), role.getName())).toList();
     }
 
 

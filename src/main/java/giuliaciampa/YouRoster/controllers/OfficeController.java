@@ -3,7 +3,6 @@ package giuliaciampa.YouRoster.controllers;
 import giuliaciampa.YouRoster.dto.requests.OfficeDTO;
 import giuliaciampa.YouRoster.dto.requests.UpdateOfficeDTO;
 import giuliaciampa.YouRoster.dto.responses.OfficeResponseDTO;
-import giuliaciampa.YouRoster.entities.Office;
 import giuliaciampa.YouRoster.entities.OfficeStatus;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.OfficeService;
@@ -31,7 +30,7 @@ public class OfficeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Office saveNewOffice(@RequestBody @Validated OfficeDTO payload, BindingResult validationResult) {
+    public OfficeResponseDTO saveNewOffice(@RequestBody @Validated OfficeDTO payload, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
@@ -44,7 +43,7 @@ public class OfficeController {
     //2. AGGIORNA UFFICIO/SEDE
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Office updateOffice(@PathVariable UUID id, @RequestBody @Validated UpdateOfficeDTO payload, BindingResult validationResult) {
+    public OfficeResponseDTO updateOffice(@PathVariable UUID id, @RequestBody @Validated UpdateOfficeDTO payload, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
             List<String> errorsList = validationResult.getFieldErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
