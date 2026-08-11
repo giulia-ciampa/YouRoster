@@ -25,22 +25,28 @@ public class ShiftAssignment {
     @ManyToOne
     private Shift shift;
 
+    @Column(name = "shift_date", nullable = false)
+    private LocalDate shiftDate;
+
+    @Column(name = "assignment_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AssignmentType assignmentType;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
 
     private String tasks;
 
-    @Column(name = "shift_date", nullable = false)
-    private LocalDate shiftDate;
 
     //COSTRUTTORE
-    public ShiftAssignment(User user, Shift shift, String tasks, LocalDate shiftDate) {
+    public ShiftAssignment(User user, Shift shift, LocalDate shiftDate, String tasks) {
         this.user = user;
         this.shift = shift;
+        this.shiftDate = shiftDate;
         this.createdAt = LocalDateTime.now();
         this.tasks = tasks;
-        this.shiftDate = shiftDate;
+
     }
 
     //COSTRUTTORE VUOTO
@@ -83,6 +89,18 @@ public class ShiftAssignment {
 
     public void setShiftDate(LocalDate shiftDate) {
         this.shiftDate = shiftDate;
+    }
+
+    public AssignmentType getAssignmentType() {
+        return assignmentType;
+    }
+
+    public void setAssignmentType(AssignmentType assignmentType) {
+        this.assignmentType = assignmentType;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     //TO STRING

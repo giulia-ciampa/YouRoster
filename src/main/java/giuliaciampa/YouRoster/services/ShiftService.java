@@ -26,6 +26,11 @@ public class ShiftService {
         this.officeService = officeService;
     }
 
+    //FIND BY ID
+    public Shift findById(UUID id) {
+        return shiftRepository.findById(id).orElseThrow(() -> new NotFoundException("Il turno con id " + id + " non è stato trovato"));
+    }
+
     //1. CREA NUOVI TURNI(ADMIN, SHIFT MANAGER)
     public ShiftResponseDTO saveNewShift(ShiftCreateDTO payload) {
 
