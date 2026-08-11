@@ -5,12 +5,13 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "task_types")
-public class TaskType {
+@Table(name = "shift_task_tiles")
+public class ShiftTaskTitle {
 
     //ATTRIBUTI
     @Id
     @GeneratedValue
+    @Column(name = "shift_task_title_id")
     private UUID id;
 
     @Column(nullable = false, unique = true)
@@ -19,13 +20,13 @@ public class TaskType {
     private String description;
 
     //COSTRUTTORE
-    public TaskType(String title, String description) {
+    public ShiftTaskTitle(String title, String description) {
         this.title = title;
         this.description = description;
     }
 
     //COSTRUTTORE VUOTO
-    public TaskType() {
+    public ShiftTaskTitle() {
     }
 
     //GETTER E SETTER
