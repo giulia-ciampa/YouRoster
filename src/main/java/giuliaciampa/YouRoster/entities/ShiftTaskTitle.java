@@ -20,12 +20,17 @@ public class ShiftTaskTitle {
     @Column(length = 300)
     private String description;
 
+    @ManyToOne
+    @JoinColumn(name = "office_id", nullable = false)
+    private Office office;
+
     private boolean isActive = true;
 
     //COSTRUTTORE
-    public ShiftTaskTitle(String title, String description) {
+    public ShiftTaskTitle(String title, String description, Office office) {
         this.title = title;
         this.description = description;
+        this.office = office;
     }
 
     //COSTRUTTORE VUOTO
@@ -59,6 +64,14 @@ public class ShiftTaskTitle {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public Office getOffice() {
+        return office;
+    }
+
+    public void setOffice(Office office) {
+        this.office = office;
     }
 
     //TO STRING

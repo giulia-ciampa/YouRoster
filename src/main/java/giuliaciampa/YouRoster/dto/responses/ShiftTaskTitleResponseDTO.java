@@ -6,6 +6,7 @@ public record ShiftTaskTitleResponseDTO(
         UUID id,
         String title,
         String description,
+        String officeName,
         boolean isActive
 ) {
 }
