@@ -177,6 +177,11 @@ public class UserService {
 
     }
 
+    //FIND BY ID
+    public User findById(UUID id) {
+        return userRepository.findById(id).orElseThrow(() -> new NotFoundException("L'utente con id " + id + " non è stato trovato."));
+    }
+
 
     //-------------------------------------------------------------------------------------------------------------
     //HELPER

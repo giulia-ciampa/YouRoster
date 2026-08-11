@@ -2,6 +2,7 @@ package giuliaciampa.YouRoster.exceptions;
 
 import giuliaciampa.YouRoster.dto.responses.ErrorsDTO;
 import giuliaciampa.YouRoster.dto.responses.ErrorsListDTO;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
@@ -62,4 +65,32 @@ public class ExceptionsHandler {
     public ErrorsDTO handleGenericException(Exception e) {
         return new ErrorsDTO("Al momento il server non risponde", LocalDateTime.now());
     }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorsListDTO handleIntegrityViolationException(DataIntegrityViolationException e) {
+
+        List<String> errorMessages = new ArrayList<>();
+        String rootMessage = e.getMostSpecificCause().getMessage().toLowerCase();
+        String message = "Errore nell'inserimento dei dati";
+
+        // Controlliamo singolarmente ogni vincolo e accumuliamo i messaggi se presenti
+        if (rootMessage.contains("phone_number")) {
+            errorMessages.add("Il numero di telefono inserito è già associato a un altro account.");
+        }
+        if (rootMessage.contains("tax_code")) {
+            errorMessages.add("Il codice fiscale inserito è già registrato nel sistema.");
+        }
+        if (rootMessage.contains("email")) {
+            errorMessages.add("L'indirizzo email inserito è già in uso.");
+        }
+
+        // Fallback generico se il database lancia un'altra violazione non mappata sopra
+        if (errorMessages.isEmpty()) {
+            errorMessages.add("Errore di duplicazione o violazione dei vincoli nel database.");
+        }
+
+        return new ErrorsListDTO(message, LocalDateTime.now(), errorMessages);
+    }
 }
+

@@ -12,34 +12,29 @@ public class ShiftAssignment {
 
     //ATTRIBUTI
 
+    @Column(name = "created_at", nullable = false)
+    private final LocalDateTime createdAt = LocalDateTime.now();
     @Id
     @GeneratedValue
     @Column(name = "shift_assignments_id")
     private UUID id;
-
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User user;
-
     @JoinColumn(name = "shift_id", nullable = false)
     @ManyToOne
     private Shift shift;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-
-    private String tasks;
-
     @Column(name = "shift_date", nullable = false)
     private LocalDate shiftDate;
+    @Column(name = "assignment_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AssignmentType assignmentType;
+
 
     //COSTRUTTORE
-    public ShiftAssignment(User user, Shift shift, String tasks, LocalDate shiftDate) {
+    public ShiftAssignment(User user, Shift shift, LocalDate shiftDate) {
         this.user = user;
         this.shift = shift;
-        this.createdAt = LocalDateTime.now();
-        this.tasks = tasks;
         this.shiftDate = shiftDate;
     }
 
@@ -69,20 +64,24 @@ public class ShiftAssignment {
         return createdAt;
     }
 
-    public String getTasks() {
-        return tasks;
-    }
-
-    public void setTasks(String tasks) {
-        this.tasks = tasks;
-    }
-
     public LocalDate getShiftDate() {
         return shiftDate;
     }
 
     public void setShiftDate(LocalDate shiftDate) {
         this.shiftDate = shiftDate;
+    }
+
+    public AssignmentType getAssignmentType() {
+        return assignmentType;
+    }
+
+    public void setAssignmentType(AssignmentType assignmentType) {
+        this.assignmentType = assignmentType;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     //TO STRING
@@ -93,7 +92,6 @@ public class ShiftAssignment {
                 ", user=" + getUser() +
                 ", shift=" + getShift() +
                 ", createdAt=" + getCreatedAt() +
-                ", tasks='" + getTasks() + '\'' +
                 ", shiftDate=" + getShiftDate() +
                 '}';
     }

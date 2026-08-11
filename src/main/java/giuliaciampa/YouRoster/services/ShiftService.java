@@ -26,6 +26,11 @@ public class ShiftService {
         this.officeService = officeService;
     }
 
+    //FIND BY ID
+    public Shift findById(UUID id) {
+        return shiftRepository.findById(id).orElseThrow(() -> new NotFoundException("Il turno con id " + id + " non è stato trovato"));
+    }
+
     //1. CREA NUOVI TURNI(ADMIN, SHIFT MANAGER)
     public ShiftResponseDTO saveNewShift(ShiftCreateDTO payload) {
 
@@ -35,6 +40,14 @@ public class ShiftService {
 
 
         Office office = officeService.findByName(payload.officeName());
+
+        if (payload.startTime().isBefore(office.getOpeningTime())) {
+            throw new BadRequestException("Il turno non può iniziare prima dell'orario di apertura dell'ufficio");
+        }
+
+        if (payload.endTime().isAfter(office.getClosingTime())) {
+            throw new BadRequestException("Il turno non può finire dopo l'orario di chiusura dell'ufficio");
+        }
 
 
         boolean exists = shiftRepository.existsByOfficeNameAndStartTimeAndEndTimeAndIsActiveTrue(

@@ -33,6 +33,10 @@ public record UserRegistrationRequestDTO(
         String nationality,
 
         @NotBlank(message = "Il numero di cellulare è obbligatorio")
+        @Pattern(
+                regexp = "^\\+\\d{1,3}\\d{4,14}$",
+                message = "Inserisci un numero di telefono valido nel formato internazionale (es. +39..., +1..., ecc.)"
+        )
         String phoneNumber,
 
         @NotBlank(message = "L'indirizzo (via/piazza) è obbligatorio")
