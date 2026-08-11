@@ -14,10 +14,13 @@ public class ShiftTaskTitle {
     @Column(name = "shift_task_title_id")
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String title;
 
+    @Column(length = 300)
     private String description;
+
+    private boolean isActive = true;
 
     //COSTRUTTORE
     public ShiftTaskTitle(String title, String description) {
@@ -50,14 +53,24 @@ public class ShiftTaskTitle {
         this.description = description;
     }
 
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
     //TO STRING
 
     @Override
     public String toString() {
-        return "TaskType{" +
+        return "ShiftTaskTitle{" +
                 "id=" + getId() +
                 ", title='" + getTitle() + '\'' +
                 ", description='" + getDescription() + '\'' +
+                ", isActive=" + isActive() +
+                ", active=" + isActive() +
                 '}';
     }
 }
