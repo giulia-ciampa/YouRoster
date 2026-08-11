@@ -16,7 +16,6 @@ public record ShiftAssignmentDTO(
         @Future(message = "la data non può essere già passata")
         LocalDate shiftDate,
         @NotNull(message = "il tipo di assegnazione è obbligatoria")
-        AssignmentType assignmentType,
-        String task
+        AssignmentType assignmentType
 ) {
 }

@@ -15,7 +15,6 @@ public record ShiftAssignmentResponseDTO(
         LocalTime startTime,
         LocalTime endTime,
         LocalDate shiftDate,
-        AssignmentType assignmentType,
-        String tasks
+        AssignmentType assignmentType
 ) {
 }

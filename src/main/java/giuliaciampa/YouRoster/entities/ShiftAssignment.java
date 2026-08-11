@@ -12,41 +12,30 @@ public class ShiftAssignment {
 
     //ATTRIBUTI
 
+    @Column(name = "created_at", nullable = false)
+    private final LocalDateTime createdAt = LocalDateTime.now();
     @Id
     @GeneratedValue
     @Column(name = "shift_assignments_id")
     private UUID id;
-
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User user;
-
     @JoinColumn(name = "shift_id", nullable = false)
     @ManyToOne
     private Shift shift;
-
     @Column(name = "shift_date", nullable = false)
     private LocalDate shiftDate;
-
     @Column(name = "assignment_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private AssignmentType assignmentType;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-
-    private String tasks;
-
 
     //COSTRUTTORE
-    public ShiftAssignment(User user, Shift shift, LocalDate shiftDate, String tasks) {
+    public ShiftAssignment(User user, Shift shift, LocalDate shiftDate) {
         this.user = user;
         this.shift = shift;
         this.shiftDate = shiftDate;
-        this.createdAt = LocalDateTime.now();
-        this.tasks = tasks;
-
     }
 
     //COSTRUTTORE VUOTO
@@ -73,14 +62,6 @@ public class ShiftAssignment {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public String getTasks() {
-        return tasks;
-    }
-
-    public void setTasks(String tasks) {
-        this.tasks = tasks;
     }
 
     public LocalDate getShiftDate() {
@@ -111,7 +92,6 @@ public class ShiftAssignment {
                 ", user=" + getUser() +
                 ", shift=" + getShift() +
                 ", createdAt=" + getCreatedAt() +
-                ", tasks='" + getTasks() + '\'' +
                 ", shiftDate=" + getShiftDate() +
                 '}';
     }

@@ -48,8 +48,7 @@ public class ShiftAssignmentService {
                 (assignment.getShift() != null) ? assignment.getShift().getStartTime() : null,
                 (assignment.getShift() != null) ? assignment.getShift().getEndTime() : null,
                 assignment.getShiftDate(),
-                assignment.getAssignmentType(),
-                assignment.getTasks()
+                assignment.getAssignmentType()
         );
     }
 
@@ -90,7 +89,7 @@ public class ShiftAssignmentService {
         assignment.setShift(shift);
         assignment.setAssignmentType(payload.assignmentType());
         assignment.setShiftDate(payload.shiftDate());
-        assignment.setTasks(payload.task());
+
 
         //6. salvataggio
 
@@ -148,10 +147,7 @@ public class ShiftAssignmentService {
         if (payload.shiftDate() != null) {
             assignment.setShiftDate(payload.shiftDate());
         }
-
-        if (payload.task() != null) {
-            assignment.setTasks(payload.task());
-        }
+        
 
         //4 salvataggio
 

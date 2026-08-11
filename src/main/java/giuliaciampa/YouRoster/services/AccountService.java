@@ -245,7 +245,7 @@ public class AccountService {
         );
 
         if (isCoordinator && officeToAssign != null) {
-            return new MessageResponseDTO("L'account dell'utente " + userName + " " + userSurname + " è stato attivato con successo con ruolo " + roleNames + " nella sede " + officeToAssign.getName(), LocalDateTime.now());
+            return new MessageResponseDTO("L'account di " + userName + " " + userSurname + " è stato attivato con successo con ruolo " + roleNames + " nella sede " + officeToAssign.getName(), LocalDateTime.now());
         }
 
         return new MessageResponseDTO("L'account dell'utente " + userName + " " + userSurname + " è stato attivato con successo con ruolo " + roleNames, LocalDateTime.now());
