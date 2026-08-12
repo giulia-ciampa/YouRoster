@@ -3,6 +3,7 @@ package giuliaciampa.YouRoster.controllers;
 import giuliaciampa.YouRoster.dto.requests.ShiftAssignmentDTO;
 import giuliaciampa.YouRoster.dto.requests.UpdateShiftAssignmentDTO;
 import giuliaciampa.YouRoster.dto.responses.ShiftAssignmentResponseDTO;
+import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.ShiftAssignmentService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -140,9 +142,9 @@ public class ShiftAssignmentController {
 
 
     //8. VISUALIZZA UTENTI IN TURNO CON TE
-    @GetMapping("{userId}/same-shift")
-    public List<ShiftAssignmentResponseDTO> getColleaguesOnMyShift(@PathVariable UUID userId, @RequestParam LocalDate shiftDate) {
-        return shiftAssignmentService.getColleaguesOnMyShift(userId, shiftDate);
+    @GetMapping("/colleagues-onshift")
+    public List<ShiftAssignmentResponseDTO> getColleaguesOnMyShift(@RequestParam LocalDate shiftDate, @AuthenticationPrincipal Account currentAccount) {
+        return shiftAssignmentService.getColleaguesOnMyShift(shiftDate, currentAccount);
     }
 
 

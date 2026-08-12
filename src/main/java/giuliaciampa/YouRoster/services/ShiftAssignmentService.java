@@ -4,10 +4,7 @@ import giuliaciampa.YouRoster.dto.requests.ShiftAssignmentDTO;
 import giuliaciampa.YouRoster.dto.requests.UpdateShiftAssignmentDTO;
 import giuliaciampa.YouRoster.dto.responses.ShiftAssignmentResponseDTO;
 import giuliaciampa.YouRoster.emailTemplates.EmailTemplateBuilder;
-import giuliaciampa.YouRoster.entities.AssignmentType;
-import giuliaciampa.YouRoster.entities.Shift;
-import giuliaciampa.YouRoster.entities.ShiftAssignment;
-import giuliaciampa.YouRoster.entities.User;
+import giuliaciampa.YouRoster.entities.*;
 import giuliaciampa.YouRoster.exceptions.BadRequestException;
 import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.repositories.ShiftAssignmentRepository;
@@ -18,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -147,7 +145,7 @@ public class ShiftAssignmentService {
         if (payload.shiftDate() != null) {
             assignment.setShiftDate(payload.shiftDate());
         }
-        
+
 
         //4 salvataggio
 
@@ -213,10 +211,10 @@ public class ShiftAssignmentService {
     }
 
     //8 VISUALIZZA UTENTI IN TURNO CON TE
-    public List<ShiftAssignmentResponseDTO> getColleaguesOnMyShift(UUID userId, LocalDate shiftDate) {
+    public List<ShiftAssignmentResponseDTO> getColleaguesOnMyShift(LocalDate shiftDate, Account currentAccount) {
 
         //1 recupero l'utente
-        User user = userService.findById(userId);
+        User user = currentAccount.getUser();
 
         //2 cerco la sua assegnazione per quel giorno
         ShiftAssignment myShiftAssignment = shiftAssignmentRepository.findByUserAndShiftDate(user, shiftDate).orElseThrow(() -> new NotFoundException("Non hai nessuna assegnazione per questa data."));
@@ -225,11 +223,17 @@ public class ShiftAssignmentService {
         if (myShiftAssignment.getShift() == null) {
             throw new BadRequestException("In questa data sei in " + myShiftAssignment.getAssignmentType() + ", non hai un turno di lavoro.");
         }
-        //4 cerco gli altri dipendenti che hanno lo stesso turno, lo stesso giorno
-        List<ShiftAssignment> colleaguesAssignments = shiftAssignmentRepository
-                .findByShiftAndShiftDateAndUserNot(myShiftAssignment.getShift(), shiftDate, user);
 
-        //5 return
+        //4 estraggo gli orati del turno e dell'ufficio del dipendente
+        LocalTime myStartTime = myShiftAssignment.getShift().getStartTime();
+        LocalTime myEndTime = myShiftAssignment.getShift().getEndTime();
+        UUID myOfficeId = myShiftAssignment.getShift().getOffice().getId();
+
+        //5 cerco gli altri dipendenti con il turno che si sovrappone a quello del dipendente
+        List<ShiftAssignment> colleaguesAssignments = shiftAssignmentRepository
+                .findOverlappingColleagues(shiftDate, user, myOfficeId, myStartTime, myEndTime);
+
+        //6 return
         return colleaguesAssignments.stream()
                 .map(this::toResponseDTO)
                 .toList();
