@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     //ATTRIBUTO
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
     @Value("${email.from}")
     private String email;
 

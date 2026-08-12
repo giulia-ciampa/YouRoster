@@ -428,7 +428,7 @@ public class AccountService {
         account.setRoles(rolesToAssign);
         accountRepository.save(account);
 
-        // Consione ruoli in stringa leggibile per l'email
+        // Conversione ruoli in stringa leggibile per l'email
         String rolesString = rolesToAssign.stream()
                 .map(Role::getName)
                 .collect(Collectors.joining(", "));
@@ -453,7 +453,7 @@ public class AccountService {
         );
 
 
-        return new MessageResponseDTO("I ruoli di " + recipientName + " sono stati aggiornati con successo", LocalDateTime.now());
+        return new MessageResponseDTO("Il ruolo di " + recipientName + " è stato aggiornato con successo. Il suo ruolo attuale è: " + rolesString, LocalDateTime.now());
 
     }
 

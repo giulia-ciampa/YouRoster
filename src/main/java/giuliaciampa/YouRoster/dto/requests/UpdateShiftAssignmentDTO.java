@@ -9,7 +9,6 @@ public record UpdateShiftAssignmentDTO(
         UUID userId,
         UUID shiftId,
         LocalDate shiftDate,
-        AssignmentType assignmentType,
-        String task
+        AssignmentType assignmentType
 ) {
 }

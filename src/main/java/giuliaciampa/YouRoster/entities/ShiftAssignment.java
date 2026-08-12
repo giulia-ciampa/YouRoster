@@ -13,7 +13,7 @@ public class ShiftAssignment {
     //ATTRIBUTI
 
     @Column(name = "created_at", nullable = false)
-    private final LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
     @Id
     @GeneratedValue
     @Column(name = "shift_assignments_id")
@@ -21,7 +21,7 @@ public class ShiftAssignment {
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User user;
-    @JoinColumn(name = "shift_id", nullable = false)
+    @JoinColumn(name = "shift_id")
     @ManyToOne
     private Shift shift;
     @Column(name = "shift_date", nullable = false)

@@ -35,6 +35,21 @@ public class ShiftAssignmentService {
         this.emailService = emailService;
     }
 
+    //FIND BY ID
+    public ShiftAssignment findById(UUID id) {
+        return shiftAssignmentRepository.findById(id).orElseThrow(() -> new NotFoundException("L'assegnazione del turno non è stata trovata"));
+    }
+
+    //FIND BY USER ID AND SHIFT DATE
+    public ShiftAssignment findByUserIdAndShiftDate(UUID userId, LocalDate shiftDate) {
+        // 1. Verifichiamo che l'utente esista
+        userService.findById(userId);
+
+        // 2. Cerchiamo l'assegnazione e restituiamo
+        return shiftAssignmentRepository.findByUserIdAndShiftDate(userId, shiftDate)
+                .orElseThrow(() -> new NotFoundException("Nessuna mansione trovata nella data odierna."));
+    }
+
     //HELPER
     public ShiftAssignmentResponseDTO toResponseDTO(ShiftAssignment assignment) {
         return new ShiftAssignmentResponseDTO(
@@ -88,6 +103,8 @@ public class ShiftAssignmentService {
         assignment.setAssignmentType(payload.assignmentType());
         assignment.setShiftDate(payload.shiftDate());
 
+        //invio email
+
 
         //6. salvataggio
 
@@ -138,21 +155,22 @@ public class ShiftAssignmentService {
                 throw new BadRequestException("Il turno è obbligatorio per i giorni di lavoro.");
             }
         } else {
-            // Se non è lavoro (es. ferie), rimuoviamo il turno associato
-            assignment.setShift(null);
-        }
 
-        if (payload.shiftDate() != null) {
-            assignment.setShiftDate(payload.shiftDate());
-        }
+            //mantieni il turno originale che non è stato svolto a causa della malattia/ferie.
 
+            // Se nel payload viene comunque passato un nuovo shiftId esplicito, possiamo aggiornarlo, altrimenti resta quello che aveva
+            if (payload.shiftId() != null) {
+                Shift shift = shiftService.findById(payload.shiftId());
+                assignment.setShift(shift);
+            }
+        }
 
         //4 salvataggio
 
         ShiftAssignment updatedAssignment = shiftAssignmentRepository.save(assignment);
 
         //5 invio email
-        String htmlBody = EmailTemplateBuilder.buildShiftUpdated(assignment.getShiftDate(), assignment.getUser().getName(), assignment.getShift(), userPageUrl);
+        String htmlBody = EmailTemplateBuilder.buildShiftUpdated(assignment.getShift().getOffice().getName(), assignment.getShift().getStartTime(), assignment.getShift().getEndTime(), assignment.getShiftDate(), assignment.getUser().getName(), userPageUrl);
         emailService.sendHtmlEmail(assignment.getUser().getAccount().getEmail(), "[Turno modificato - YouRoster!]", htmlBody);
 
         return toResponseDTO(updatedAssignment);
@@ -179,38 +197,41 @@ public class ShiftAssignmentService {
         shiftAssignmentRepository.delete(shiftAssignment);
     }
 
-    //4 VISUALIZZA TUTTE LE ASSEGNAZIONI
-    public Page<ShiftAssignmentResponseDTO> getAllAssignment(Pageable pageable) {
 
-        Page<ShiftAssignment> assignmentsPage = shiftAssignmentRepository.findAll(pageable);
+    //4 VISUALIZZA LE ASSEGNAZIONI PER DATA
+    public Page<ShiftAssignmentResponseDTO> getAssignmentsByDateAndFilters(LocalDate shiftDate, String officeName, AssignmentType assignmentType, Pageable pageable) {
 
-        return assignmentsPage.map(this::toResponseDTO);
-    }
-
-    //5 VISUALIZZA LE ASSEGNAZIONI PER DATA
-    public Page<ShiftAssignmentResponseDTO> getAllAssignmentByDate(LocalDate shiftDate, Pageable pageable) {
-
-        Page<ShiftAssignment> assignmentsPage = shiftAssignmentRepository.findByShiftDate(shiftDate, pageable);
+        Page<ShiftAssignment> assignmentsPage = shiftAssignmentRepository.findByDateAndFilters(shiftDate, officeName, assignmentType, pageable);
 
         return assignmentsPage.map(this::toResponseDTO);
     }
 
-    //6 VISUALIZZA LE ASSEGNAZIONI DA DATA X A DATA Y
-    public Page<ShiftAssignmentResponseDTO> getAssignmentsBetweenDates(LocalDate startDate, LocalDate endDate, Pageable pageable) {
-        Page<ShiftAssignment> assignmentsPage = shiftAssignmentRepository.findByShiftDateBetween(startDate, endDate, pageable);
-        return assignmentsPage.map(this::toResponseDTO);
-    }
+    //5 VISUALIZZA LE ASSEGNAZIONI DA DATA X A DATA Y
+    public Page<ShiftAssignmentResponseDTO> getAssignmentsBetweenDatesAndFilters(LocalDate startDate, LocalDate endDate, String officeName, AssignmentType assignmentType, Pageable pageable) {
 
-    //7 VISUALIZZA LE PROPRIE ASSEGNAZIONI
-    public Page<ShiftAssignmentResponseDTO> getMyAssignment(UUID userId, LocalDate startDate, LocalDate endDate, Pageable pageable) {
-        User user = userService.findById(userId);
-
-        Page<ShiftAssignment> assignmentsPage = shiftAssignmentRepository.findByUserAndShiftDateBetween(user, startDate, endDate, pageable);
+        Page<ShiftAssignment> assignmentsPage = shiftAssignmentRepository.findByDateBetweenAndFilters(startDate, endDate, officeName, assignmentType, pageable);
 
         return assignmentsPage.map(this::toResponseDTO);
     }
 
-    //8 VISUALIZZA UTENTI IN TURNO CON TE
+    //6 VISUALIZZA LE PROPRIE ASSEGNAZIONI
+    public Page<ShiftAssignmentResponseDTO> getMyAssignment(Account currentAccount, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+
+        Page<ShiftAssignment> assignmentsPage;
+
+        if (startDate != null && endDate != null) {
+            // Se l'utente specifica un intervallo
+            assignmentsPage = shiftAssignmentRepository.findByUserAndShiftDateBetween(currentAccount.getUser(), startDate, endDate, pageable);
+        } else {
+            // Se non mette le date, possiamo creare un metodo ad hoc nel repository o filtrare per utente e basta
+            assignmentsPage = shiftAssignmentRepository.findByUser(currentAccount.getUser(), pageable);
+        }
+
+        return assignmentsPage.map(this::toResponseDTO);
+
+    }
+
+    //7 VISUALIZZA UTENTI IN TURNO CON TE
     public List<ShiftAssignmentResponseDTO> getColleaguesOnMyShift(LocalDate shiftDate, Account currentAccount) {
 
         //1 recupero l'utente
@@ -235,6 +256,25 @@ public class ShiftAssignmentService {
 
         //6 return
         return colleaguesAssignments.stream()
+                .map(this::toResponseDTO)
+                .toList();
+
+    }
+
+    //8. COORDINATOR DEVE POTER VISUALIZZARE CHI E' IN TURNO IN QUEL GIORNO IN QUELLA SEDE
+    public List<ShiftAssignmentResponseDTO> getDailyAssignmentsForCoordinator(LocalDate date, Account currentAccount) {
+
+        // 1. Verifico l'ufficio del coordinatore loggato
+        if (currentAccount.getUser().getReferenceOffice() == null) {
+            throw new BadRequestException("Non sei associato a nessun ufficio.");
+        }
+        UUID officeId = currentAccount.getUser().getReferenceOffice().getId();
+
+        // 2. Recupero tutte le assegnazioni valide per quella data e quell'ufficio
+        List<ShiftAssignment> assignments = shiftAssignmentRepository.findByShiftDateAndOfficeId(date, officeId);
+
+        // 3. return
+        return assignments.stream()
                 .map(this::toResponseDTO)
                 .toList();
 

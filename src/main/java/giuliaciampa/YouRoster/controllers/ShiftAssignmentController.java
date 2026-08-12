@@ -4,6 +4,7 @@ import giuliaciampa.YouRoster.dto.requests.ShiftAssignmentDTO;
 import giuliaciampa.YouRoster.dto.requests.UpdateShiftAssignmentDTO;
 import giuliaciampa.YouRoster.dto.responses.ShiftAssignmentResponseDTO;
 import giuliaciampa.YouRoster.entities.Account;
+import giuliaciampa.YouRoster.entities.AssignmentType;
 import giuliaciampa.YouRoster.exceptions.ValidationException;
 import giuliaciampa.YouRoster.services.ShiftAssignmentService;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
@@ -68,35 +70,25 @@ public class ShiftAssignmentController {
     //3. CANCELLA UN'ASSEGNAZIONE
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SHIFT MANAGER')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteShiftAssignment(@PathVariable UUID id) {
 
         shiftAssignmentService.deleteShiftAssignment(id);
 
     }
 
-    //4. VISUALIZZA TUTTE LE ASSEGNAZIONI
-    @GetMapping
+
+    //4. VISUALIZZA LE ASSEGNAZIONI PER DATA
+    @GetMapping("/by-date")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SHIFT MANAGER')")
-    public Page<ShiftAssignmentResponseDTO> getAllAssignment(@RequestParam(defaultValue = "0") int page,
-                                                             @RequestParam(defaultValue = "15") int size,
-                                                             @RequestParam(defaultValue = "shiftDate") String sortBy) {
-
-        if (size <= 0) size = 10;
-        if (size > 15) size = 15;
-        if (page < 0) page = 0;
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
-
-        return shiftAssignmentService.getAllAssignment(pageable);
-    }
-
-    //5. VISUALIZZA LE ASSEGNAZIONI PER DATA
-    @GetMapping("by-date")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SHIFT MANAGER')")
-    public Page<ShiftAssignmentResponseDTO> getAllAssignmentByDate(@RequestParam(defaultValue = "0") int page,
-                                                                   @RequestParam(defaultValue = "15") int size,
-                                                                   @RequestParam(defaultValue = "shiftDate") String sortBy,
-                                                                   @RequestParam(required = false) LocalDate shiftDate) {
+    public Page<ShiftAssignmentResponseDTO> getAssignmentsByDateAndFilters(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size,
+            @RequestParam(defaultValue = "shiftDate") String sortBy,
+            @RequestParam LocalDate shiftDate,
+            @RequestParam(required = false) String officeName,
+            @RequestParam(required = false) AssignmentType assignmentType
+    ) {
 
         if (size <= 0) size = 10;
         if (size > 15) size = 15;
@@ -104,17 +96,20 @@ public class ShiftAssignmentController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
 
-        return shiftAssignmentService.getAllAssignmentByDate(shiftDate, pageable);
+        return shiftAssignmentService.getAssignmentsByDateAndFilters(shiftDate, officeName, assignmentType, pageable);
     }
 
-    //6. VISUALIZZA LE ASSEGNAZIONI DA DATA X A DATA Y
+    //5. VISUALIZZA LE ASSEGNAZIONI DA DATA X A DATA Y
     @GetMapping("/between-dates")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SHIFT MANAGER')")
-    public Page<ShiftAssignmentResponseDTO> getAssignmentsBetweenDates(@RequestParam(defaultValue = "0") int page,
-                                                                       @RequestParam(defaultValue = "15") int size,
-                                                                       @RequestParam(defaultValue = "shiftDate") String sortBy,
-                                                                       @RequestParam(required = false) LocalDate startDate,
-                                                                       @RequestParam(required = false) LocalDate endDate) {
+    public Page<ShiftAssignmentResponseDTO> getAssignmentsBetweenDatesAndFilters(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size,
+            @RequestParam(defaultValue = "shiftDate") String sortBy,
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate,
+            @RequestParam(required = false) String officeName,
+            @RequestParam(required = false) AssignmentType assignmentType) {
 
         if (size <= 0) size = 10;
         if (size > 15) size = 15;
@@ -122,13 +117,13 @@ public class ShiftAssignmentController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
 
-        return shiftAssignmentService.getAssignmentsBetweenDates(startDate, endDate, pageable);
+        return shiftAssignmentService.getAssignmentsBetweenDatesAndFilters(startDate, endDate, officeName, assignmentType, pageable);
     }
 
-    //7. VISUALIZZA LE PROPRIE ASSEGNAZIONI
-    @GetMapping("{userId}")
+    //6. VISUALIZZA LE PROPRIE ASSEGNAZIONI
+    @GetMapping("/me")
     public Page<ShiftAssignmentResponseDTO> getMyAssignment(
-            @PathVariable UUID userId,
+            @AuthenticationPrincipal Account currentAccount,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size,
             @RequestParam(defaultValue = "shiftDate") String sortBy,
@@ -137,14 +132,19 @@ public class ShiftAssignmentController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
 
-        return shiftAssignmentService.getMyAssignment(userId, startDate, endDate, pageable);
+        return shiftAssignmentService.getMyAssignment(currentAccount, startDate, endDate, pageable);
     }
 
 
-    //8. VISUALIZZA UTENTI IN TURNO CON TE
+    //7. VISUALIZZA UTENTI IN TURNO CON TE
     @GetMapping("/colleagues-onshift")
     public List<ShiftAssignmentResponseDTO> getColleaguesOnMyShift(@RequestParam LocalDate shiftDate, @AuthenticationPrincipal Account currentAccount) {
         return shiftAssignmentService.getColleaguesOnMyShift(shiftDate, currentAccount);
+    }
+
+    //8. COORDINATOR DEVE POTER VISUALIZZARE CHI E' IN TURNO IN QUEL GIORNO IN QUELLA SEDE
+    public List<ShiftAssignmentResponseDTO> getDailyAssignmentsForCoordinator(@RequestParam LocalDate date, @AuthenticationPrincipal Account currentAccount) {
+        return shiftAssignmentService.getDailyAssignmentsForCoordinator(date, currentAccount);
     }
 
 
