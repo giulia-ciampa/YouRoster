@@ -49,6 +49,11 @@ public class ShiftTaskTitleService {
         }
     }
 
+    //findbyid
+    public ShiftTaskTitle findById(UUID id) {
+        return shiftTaskTitleRepository.findById(id).orElseThrow(() -> new NotFoundException("Il titolo della mansione non è stato trovato"));
+    }
+
     // 1. CREA NUOVO TITOLO
     public ShiftTaskTitleResponseDTO saveNewTaskTitle(ShiftTaskTitleRequestDTO payload, Account currentAccount) {
         Office office = officeService.findById(payload.officeId());
