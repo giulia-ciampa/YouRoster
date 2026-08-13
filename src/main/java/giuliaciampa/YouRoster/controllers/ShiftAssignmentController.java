@@ -99,7 +99,7 @@ public class ShiftAssignmentController {
         return shiftAssignmentService.getAssignmentsByDateAndFilters(shiftDate, officeName, assignmentType, pageable);
     }
 
-    //5. VISUALIZZA LE ASSEGNAZIONI DA DATA X A DATA Y
+    //5. VISUALIZZA LE ASSEGNAZIONI DA DATA X A DATA Y PER UFFICIO
     @GetMapping("/between-dates")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SHIFT MANAGER')")
     public Page<ShiftAssignmentResponseDTO> getAssignmentsBetweenDatesAndFilters(

@@ -1,5 +1,6 @@
 package giuliaciampa.YouRoster.dto.responses;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import giuliaciampa.YouRoster.entities.AssignmentType;
 
 import java.time.LocalDate;
@@ -12,8 +13,13 @@ public record ShiftAssignmentResponseDTO(
         String userSurname,
         String userEmail,
         String officeName,
+
+        @JsonFormat(pattern = "HH:mm")
         LocalTime startTime,
+
+        @JsonFormat(pattern = "HH:mm")
         LocalTime endTime,
+
         LocalDate shiftDate,
         AssignmentType assignmentType
 ) {

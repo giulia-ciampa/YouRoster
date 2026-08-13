@@ -47,7 +47,14 @@ public class ShiftAssignmentService {
 
         // 2. Cerchiamo l'assegnazione e restituiamo
         return shiftAssignmentRepository.findByUserIdAndShiftDate(userId, shiftDate)
-                .orElseThrow(() -> new NotFoundException("Nessuna mansione trovata nella data odierna."));
+                .orElseThrow(() -> new NotFoundException("Nessuna assegnazione trovata nella data odierna."));
+    }
+
+    //FIND BY USER AND SHIFT DATE
+    public ShiftAssignment findByUserAndShiftDate(User user, LocalDate shiftDate) {
+        userService.findById(user.getId());
+
+        return shiftAssignmentRepository.findByUserAndShiftDate(user, shiftDate).orElseThrow(() -> new NotFoundException("Nessuna assegnazione trovata nella data odierna."));
     }
 
     //HELPER
@@ -206,7 +213,7 @@ public class ShiftAssignmentService {
         return assignmentsPage.map(this::toResponseDTO);
     }
 
-    //5 VISUALIZZA LE ASSEGNAZIONI DA DATA X A DATA Y
+    //5 VISUALIZZA LE ASSEGNAZIONI DA DATA X A DATA Y PER UFFICIO
     public Page<ShiftAssignmentResponseDTO> getAssignmentsBetweenDatesAndFilters(LocalDate startDate, LocalDate endDate, String officeName, AssignmentType assignmentType, Pageable pageable) {
 
         Page<ShiftAssignment> assignmentsPage = shiftAssignmentRepository.findByDateBetweenAndFilters(startDate, endDate, officeName, assignmentType, pageable);

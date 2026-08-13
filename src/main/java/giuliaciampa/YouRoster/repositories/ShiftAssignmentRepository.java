@@ -80,4 +80,6 @@ public interface ShiftAssignmentRepository extends JpaRepository<ShiftAssignment
     );
 
     Optional<ShiftAssignment> findByUserIdAndShiftDate(UUID userId, LocalDate shiftDate);
+
+
 }
