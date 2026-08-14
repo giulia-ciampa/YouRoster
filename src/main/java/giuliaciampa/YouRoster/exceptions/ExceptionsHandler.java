@@ -70,6 +70,9 @@ public class ExceptionsHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorsListDTO handleIntegrityViolationException(DataIntegrityViolationException e) {
 
+        e.printStackTrace();
+        System.out.println("CAUSA ESATTA DB: " + e.getMostSpecificCause().getMessage());
+
         List<String> errorMessages = new ArrayList<>();
         String rootMessage = e.getMostSpecificCause().getMessage().toLowerCase();
         String message = "Errore nell'inserimento dei dati";
@@ -92,5 +95,7 @@ public class ExceptionsHandler {
 
         return new ErrorsListDTO(message, LocalDateTime.now(), errorMessages);
     }
+
+
 }
 

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+
 @Entity
 @Table(name = "absence_certificate_requests")
 @PrimaryKeyJoinColumn(name = "request_id")
@@ -39,10 +41,6 @@ public class AbsenceCertificationRequest extends Request {
         this.endDate = endDate;
         this.certificateType = certificateType;
         this.certificateUrl = certificateUrl;
-
-        if (startDate != null && endDate != null) {
-            this.totalDays = (int) (java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1);
-        }
     }
 
     //COSTRUTTORE VUOTO
@@ -105,6 +103,11 @@ public class AbsenceCertificationRequest extends Request {
 
     public void setProtocolCode(String protocolCode) {
         this.protocolCode = protocolCode;
+    }
+
+    //METODO CALCOLO GIORNI TOTALI
+    public void calculateTotalDays() {
+        this.totalDays = (int) DAYS.between(this.startDate, this.endDate) + 1;
     }
 
     //TO STRING

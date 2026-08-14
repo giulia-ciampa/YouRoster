@@ -1,5 +1,6 @@
 package giuliaciampa.YouRoster.dto.responses;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import giuliaciampa.YouRoster.entities.DocumentType;
 
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ public record UserProfileResponseDTO(
         UUID userId,
         String name,
         String surname,
+        @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dateOfBirth,
         String placeOfBirth,
         String phoneNumber,
@@ -23,7 +25,9 @@ public record UserProfileResponseDTO(
         String iban,
         String documentNumber,
         DocumentType documentType,
+        @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate issueDate,
+        @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate expirationDate,
         String documentFrontUrl,
         String documentBackUrl,

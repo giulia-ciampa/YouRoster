@@ -9,6 +9,7 @@ import java.util.UUID;
 public record ShiftTaskResponseDTO(
         UUID id,
         UUID shiftAssignmentId,
+        @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate shiftDate,
         String assignmentType,
         @JsonFormat(pattern = "HH:mm")

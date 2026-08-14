@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public record UpdateCredentialsResponseDTO(
         String message,
 
-        @JsonFormat(pattern = "HH:mm")
+        @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
         LocalDateTime time
 ) {
 }

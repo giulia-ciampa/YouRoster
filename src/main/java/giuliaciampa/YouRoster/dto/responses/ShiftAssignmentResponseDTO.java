@@ -19,7 +19,7 @@ public record ShiftAssignmentResponseDTO(
 
         @JsonFormat(pattern = "HH:mm")
         LocalTime endTime,
-
+        @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate shiftDate,
         AssignmentType assignmentType
 ) {
