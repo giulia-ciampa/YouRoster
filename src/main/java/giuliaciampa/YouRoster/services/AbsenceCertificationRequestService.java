@@ -8,6 +8,7 @@ import giuliaciampa.YouRoster.dto.responses.AbsenceCertificationReviewResponseDT
 import giuliaciampa.YouRoster.entities.AbsenceCertificationRequest;
 import giuliaciampa.YouRoster.entities.Account;
 import giuliaciampa.YouRoster.entities.RequestStatus;
+import giuliaciampa.YouRoster.entities.Role;
 import giuliaciampa.YouRoster.exceptions.BadRequestException;
 import giuliaciampa.YouRoster.exceptions.NotFoundException;
 import giuliaciampa.YouRoster.exceptions.UnauthorizedException;
@@ -65,8 +66,7 @@ public class AbsenceCertificationRequestService {
                 request.getCreatedAt(),
                 request.getEmployeeNotes(),
                 request.getReviewerNotes(),
-                request.getReviewer() != null ? request.getReviewer().getId() : null,
-                request.getReviewer() != null ? request.getReviewer().getName() + " " + request.getReviewer().getSurname() : "ADMIN"
+                request.getReviewer().getAccount().getRoles().stream().map(Role::getName).toList()
         );
 
 
@@ -259,7 +259,7 @@ public class AbsenceCertificationRequestService {
         if (request.getRequestStatus() != RequestStatus.SENT) {
             throw new BadRequestException("Questa richiesta è già stata valutata o non è in uno stato valido per la valutazione.");
         }
-        
+
 
         //4. IMPOSTA REVISORE SOLO SE ESISTE UNO USER ASSOCIATO
         if (currentAccount.getUser() != null) {

@@ -6,6 +6,7 @@ import giuliaciampa.YouRoster.entities.RequestStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record AbsenceCertificationReviewResponseDTO(
@@ -25,7 +26,6 @@ public record AbsenceCertificationReviewResponseDTO(
         LocalDateTime createdAt,
         String employeeNotes,
         String reviewerNotes,
-        UUID reviewers,
-        String reviewerName
+        List<String> reviewerRole
 ) {
 }
